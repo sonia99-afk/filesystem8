@@ -1968,3 +1968,39 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+
+
+/* =========================
+   Table drag & drop
+   ========================= */
+
+.structure-table.table-dragging,
+.structure-table.table-dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+body.table-drag-drop-active,
+body.table-drag-drop-active * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.structure-table tr.table-dragging-row td {
+  opacity: 0.45;
+}
+
+.table-drag-drop-line {
+  position: fixed;
+  height: 2px;
+  background: #111;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+
+.table-drag-drop-line.is-inside {
+  height: 2px;
+}

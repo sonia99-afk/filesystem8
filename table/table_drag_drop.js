@@ -1,89 +1,32 @@
+// table_drag_drop.js
+// Drag & drop строк в табличном режиме.
+//
+// Поддерживает:
+// - drop before  — вставить перед строкой
+// - drop after   — вставить после строки
+// - drop inside  — вложить внутрь строки, если объект может иметь детей
+
 (function () {
   if (typeof window === "undefined") return;
 
   const DRAG_START_DISTANCE = 6;
 
+  const DROP_MODE = {
+    BEFORE: "before",
+    AFTER: "after",
+    INSIDE: "inside",
+  };
+
   let dragState = null;
   let dropLine = null;
-  let stylesInjected = false;
 
   function isTableViewActive() {
     const host = document.getElementById("tree");
 
-    return (
-      !!host?.querySelector?.(".structure-table") &&
+    return !!(
+      host?.querySelector?.(".structure-table") &&
       (!window.VIEW || window.currentView === window.VIEW.TABLE)
     );
-  }
-
-  function injectStyles() {
-    if (stylesInjected) return;
-    stylesInjected = true;
-
-    const style = document.createElement("style");
-
-    style.textContent = `
-      .structure-table.table-dragging,
-      .structure-table.table-dragging * {
-        cursor: grabbing !important;
-        user-select: none !important;
-        -webkit-user-select: none !important;
-      }
-
-      body.table-drag-drop-active,
-      body.table-drag-drop-active * {
-        user-select: none !important;
-        -webkit-user-select: none !important;
-      }
-
-      .structure-table tr.table-dragging-row td {
-        opacity: 0.45;
-      }
-
-      .table-drag-drop-line {
-        position: fixed;
-        height: 2px;
-        background: #111;
-        z-index: 0;
-        pointer-events: none;
-        display: none;
-      }
-
-      .table-drag-drop-line.is-inside {
-        height: 2px;
-      }
-    `;
-
-    document.head.appendChild(style);
-  }
-
-  function clearTextSelection() {
-    window.getSelection?.()?.removeAllRanges?.();
-  }
-
-  function isInteractiveTarget(el) {
-    if (!el) return false;
-
-    const interactive = el.closest?.(
-      [
-        "button",
-        "input",
-        "textarea",
-        "select",
-        "label",
-        "a",
-        "[contenteditable='true']",
-        ".edit",
-        ".table-cell-editor",
-        ".table-rich-cell-editor",
-        ".table-duration-mask-editor",
-        ".table-tag-compact-menu",
-        ".table-tag-compact-option",
-        ".table-tag-compact-action",
-      ].join(",")
-    );
-
-    return !!interactive;
   }
 
   function getTableFromEventTarget(target) {
@@ -121,6 +64,35 @@
     );
   }
 
+  function clearTextSelection() {
+    window.getSelection?.()?.removeAllRanges?.();
+  }
+
+  function isInteractiveTarget(el) {
+    if (!el) return false;
+
+    return !!el.closest?.(
+      [
+        "button",
+        "input",
+        "textarea",
+        "select",
+        "label",
+        "a",
+        "[contenteditable='true']",
+        ".edit",
+        ".table-cell-editor",
+        ".table-rich-cell-editor",
+        ".table-duration-mask-editor",
+        ".table-dropdown-menu",
+        ".table-tag-compact-menu",
+        ".table-tag-compact-option",
+        ".table-tag-compact-action",
+        ".table-composite-datetime-editor",
+      ].join(",")
+    );
+  }
+
   function ensureDropLine() {
     if (dropLine && document.body.contains(dropLine)) {
       return dropLine;
@@ -152,17 +124,15 @@
 
     let y;
 
-    if (mode === "before") {
+    if (mode === DROP_MODE.BEFORE) {
       y = rowBox.top;
-    } else if (mode === "after") {
+      line.classList.remove("is-inside");
+    } else if (mode === DROP_MODE.AFTER) {
       y = rowBox.bottom;
+      line.classList.remove("is-inside");
     } else {
       y = rowBox.top + rowBox.height / 2;
       line.classList.add("is-inside");
-    }
-
-    if (mode !== "inside") {
-      line.classList.remove("is-inside");
     }
 
     line.style.display = "block";
@@ -190,15 +160,84 @@
     hideDropLine();
   }
 
-  function setSubtreeLevel(node, level) {
-    if (!node) return;
+    function getDefaultNodeName(level) {
+      return (
+        window.levelHeaders?.getLevelTitle?.(level) ||
+        window.DEFAULT_NAME?.[level] ||
+        `Уровень ${level}`
+      );
+    }
 
-    node.level = level;
+    function isDefaultNodeNameForLevel(node, level) {
+      if (!node) return false;
 
-    (node.children || []).forEach((child) => {
-      setSubtreeLevel(child, level + 1);
-    });
-  }
+      const defaultName = String(getDefaultNodeName(level) || "").trim();
+      const plainName = String(node.name || "").trim();
+      const htmlText =
+        node.nameHtml && typeof htmlPlainText === "function"
+          ? String(htmlPlainText(node.nameHtml) || "").trim()
+          : "";
+
+      return plainName === defaultName || htmlText === defaultName;
+    }
+
+    function setSubtreeLevelFallback(node, level) {
+      if (!node) return true;
+
+      const oldLevel = node.level;
+      const shouldRenameDefault = isDefaultNodeNameForLevel(node, oldLevel);
+
+      node.level = level;
+
+      if (shouldRenameDefault) {
+        const nextDefaultName = getDefaultNodeName(level);
+
+        node.name = nextDefaultName;
+
+        if (
+          node.nameHtml &&
+          typeof replaceTextInsideHtmlPreservingMarkup === "function"
+        ) {
+          node.nameHtml = replaceTextInsideHtmlPreservingMarkup(
+            node.nameHtml,
+            nextDefaultName
+          );
+        } else {
+          node.nameHtml = "";
+        }
+      }
+
+      for (const child of node.children || []) {
+        setSubtreeLevelFallback(child, level + 1);
+      }
+
+      return true;
+    }
+
+    function setSubtreeLevel(node, level) {
+      if (!node) return true;
+
+      const delta = level - node.level;
+
+      if (delta === 0) {
+        return true;
+      }
+
+      /*
+        Основной правильный путь:
+        shiftSubtreeLevel уже умеет менять уровни поддерева
+        и обновлять дефолтные названия при смене уровня.
+      */
+      if (typeof shiftSubtreeLevel === "function") {
+        return shiftSubtreeLevel(node, delta);
+      }
+
+      /*
+        Запасной путь, если table_drag_drop.js вдруг используется
+        без общего ядра, где объявлен shiftSubtreeLevel.
+      */
+      return setSubtreeLevelFallback(node, level);
+    }
 
   function isDescendantOf(nodeId, possibleParentId) {
     const parent = getNodeById(possibleParentId);
@@ -210,6 +249,7 @@
       (node.children || []).forEach((child) => {
         if (child.id === nodeId) {
           found = true;
+          return;
         }
 
         walk(child);
@@ -272,16 +312,25 @@
 
     let nextIndex = Math.max(0, Math.min(index, newArr.length));
 
+    /*
+      Если двигаем внутри того же родителя вниз по списку,
+      после удаления старой позиции индекс вставки смещается на 1.
+    */
     if (from.parent.id === to.node.id && oldIdx < nextIndex) {
       nextIndex--;
     }
 
     newArr.splice(nextIndex, 0, node);
 
-    setSubtreeLevel(node, to.node.level + 1);
+    const levelUpdated = setSubtreeLevel(node, to.node.level + 1);
 
-    selectedId = node.id;
-    treeHasFocus = true;
+    if (!levelUpdated) {
+      undo?.();
+      return false;
+    }
+
+    window.selectedId = node.id;
+    window.treeHasFocus = true;
 
     return true;
   }
@@ -355,17 +404,38 @@
 
     let moved = false;
 
-    if (state.mode === "before") {
+    if (state.mode === DROP_MODE.BEFORE) {
       moved = moveNodeBefore(state.targetId, state.id);
-    } else if (state.mode === "after") {
+    } else if (state.mode === DROP_MODE.AFTER) {
       moved = moveNodeAfter(state.targetId, state.id);
-    } else if (state.mode === "inside") {
+    } else if (state.mode === DROP_MODE.INSIDE) {
       moved = moveNodeInside(state.targetId, state.id);
     }
 
     if (moved) {
       rerenderAfterMove();
     }
+  }
+
+  function getDropModeFromPointer(targetTr, targetNode, clientY) {
+    if (!targetTr || !targetNode) return null;
+
+    const box = targetTr.getBoundingClientRect();
+    const y = clientY - box.top;
+
+    if (y < box.height * 0.28) {
+      return DROP_MODE.BEFORE;
+    }
+
+    if (y > box.height * 0.72) {
+      return DROP_MODE.AFTER;
+    }
+
+    if (canNodeHaveChild(targetNode)) {
+      return DROP_MODE.INSIDE;
+    }
+
+    return null;
   }
 
   function updateDragTarget(e) {
@@ -406,11 +476,11 @@
       movingTr.classList.add("table-dragging-row");
     }
 
-    const targetTr = getRowFromEventTarget(e.target);
-    const targetId = getRowId(targetTr);
-
     dragState.targetId = null;
     dragState.mode = null;
+
+    const targetTr = getRowFromEventTarget(e.target);
+    const targetId = getRowId(targetTr);
 
     if (!targetTr || !targetId) {
       hideDropLine();
@@ -435,18 +505,7 @@
       return;
     }
 
-    const box = targetTr.getBoundingClientRect();
-    const y = e.clientY - box.top;
-
-    let mode = null;
-
-    if (y < box.height * 0.28) {
-      mode = "before";
-    } else if (y > box.height * 0.72) {
-      mode = "after";
-    } else if (canNodeHaveChild(target.node)) {
-      mode = "inside";
-    }
+    const mode = getDropModeFromPointer(targetTr, target.node, e.clientY);
 
     if (!mode) {
       hideDropLine();
@@ -457,6 +516,16 @@
     dragState.mode = mode;
 
     showDropLineForRow(table, targetTr, mode);
+  }
+
+  function bindMoveListeners() {
+    window.addEventListener("mousemove", updateDragTarget, true);
+    window.addEventListener("mouseup", handleMouseUp, true);
+  }
+
+  function unbindMoveListeners() {
+    window.removeEventListener("mousemove", updateDragTarget, true);
+    window.removeEventListener("mouseup", handleMouseUp, true);
   }
 
   function handleMouseDown(e) {
@@ -473,8 +542,6 @@
     if (!table || !tr || !id) return;
     if (id === root?.id) return;
 
-    injectStyles();
-
     dragState = {
       table,
       id,
@@ -485,18 +552,15 @@
       mode: null,
     };
 
-    window.addEventListener("mousemove", updateDragTarget, true);
-    window.addEventListener("mouseup", handleMouseUp, true);
+    bindMoveListeners();
   }
 
   function handleMouseUp() {
-    window.removeEventListener("mousemove", updateDragTarget, true);
-    window.removeEventListener("mouseup", handleMouseUp, true);
-
+    unbindMoveListeners();
     finishDrag();
   }
 
-  function initTableDragDrop() {
+  function init() {
     if (document.__tableDragDropBound) return;
 
     document.__tableDragDropBound = true;
@@ -505,9 +569,22 @@
   }
 
   window.tableDragDrop = {
-    init: initTableDragDrop,
+    init,
     cancel: cancelDrag,
+    debug() {
+      return {
+        dragState: dragState
+          ? {
+              id: dragState.id,
+              started: dragState.started,
+              targetId: dragState.targetId,
+              mode: dragState.mode,
+            }
+          : null,
+        hasDropLine: !!dropLine,
+      };
+    },
   };
 
-  initTableDragDrop();
+  init();
 })();

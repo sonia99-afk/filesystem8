@@ -14,19 +14,43 @@
         js: [],
       },
   
-table: {
-  css: ["css/views/table_view.css"],
-  js: [
-    "table_view.js",
-    "table_cell_nav.js",
-    "table_hotkeys.js",
-    "table_drag_drop.js",
-    "table_multi_select_tree.js",
-    "table_multi_select_deep.js",
-    "table_multi_select_branch.js"
-  ],
-},
-  
+      table: {
+        css: [
+          "css/views/table_view.css",
+          "css/views/table_multi_select.css"
+        ],
+        js: [
+          "table/table_props.js",
+          "table/table_columns.js",
+          "table/table_tags.js",
+
+          "table/table_dropdown_cells.js",
+          "table/table_datetime_cells.js",
+          "table/table_direct_cells.js",
+          "table/table_rich_text_cells.js",
+          "table/table_builtin_cells.js",
+          "table/table_cell_editors.js",
+
+          "table/table_tab_navigation.js",
+          "table/table_collapse_column.js",
+          "table/table_descendant_highlight.js",
+
+          "table/table_upload_cells.js",
+          "table/table_upload_hotkeys.js",
+          "table/table_timer_cells.js",
+
+          "table/table_property_cells.js",
+          "table/table_rows.js",
+          "table/table_cell_bg.js",
+
+          "table/table_view.js",
+          "table/table_cell_nav.js",
+          "table/table_hotkeys.js",
+          "table/table_drag_drop.js",
+          "table/table_multi_select.js"
+        ],
+      },
+
       list: {
         css: ["css/views/list_view.css"],
         js: ["list_view.js"],

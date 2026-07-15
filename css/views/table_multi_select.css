@@ -1,0 +1,47 @@
+/* table_multi_select.css */
+/* Единые стили табличного мультивыделения */
+
+.structure-table tbody tr.table-row-multi > td,
+.structure-table tbody tr.table-row-multi > td.table-cell {
+  background: rgba(128, 128, 128, 0.14) !important;
+}
+
+.structure-table tbody tr.table-row-multi-anchor > td,
+.structure-table tbody tr.table-row-multi-anchor > td.table-cell {
+  background: rgba(128, 128, 128, 0.20) !important;
+}
+
+/* Синий контур строки начала мультивыделения */
+.structure-table tbody tr.table-row-multi-anchor {
+  outline: 2px solid rgba(37, 99, 235, 0.9);
+  outline-offset: -2px;
+  position: relative;
+  z-index: 2;
+}
+
+/*
+  Черный бордер активной ячейки не убираем.
+  Он должен оставаться поверх серого фона и синего контура строки.
+*/
+.structure-table tbody tr.table-row-multi > td.table-cell-selected,
+.structure-table tbody tr.table-row-multi-anchor > td.table-cell-selected {
+  position: relative;
+  z-index: 4;
+}
+
+/*
+  Страховка от старых .row.multi / .row.multi-anchor.
+  В новой версии мультивыделение таблицы живёт на tr,
+  а не на .row.
+*/
+.structure-table tbody tr.table-row-multi .row,
+.structure-table tbody tr.table-row-multi-anchor .row {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+.structure-table tbody tr.table-row-multi .row *,
+.structure-table tbody tr.table-row-multi-anchor .row * {
+  background: transparent !important;
+  color: inherit !important;
+}
