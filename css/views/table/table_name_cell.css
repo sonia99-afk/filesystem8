@@ -1,0 +1,108 @@
+/* =========================
+   Table name cell
+   Название + кнопки действий
+   ========================= */
+
+/* Старый класс, который остался на ячейке названия */
+.table-name-row {
+  display: inline-flex;
+  align-items: center;
+  max-width: 270px;
+}
+
+.table-name-row.sel {
+  background: #eaeaea;
+}
+
+/* === Название в таблице: сама td является ячейкой объекта === */
+
+.structure-table td.table-name-cell {
+  position: relative;
+
+  min-width: 260px;
+  max-width: 320px;
+  cursor: default;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/*
+  td вынужденно имеет class row для совместимости со старой логикой,
+  поэтому перебиваем старые стили .row
+*/
+.structure-table td.table-name-cell.row {
+  display: table-cell;
+
+  height: auto;
+
+  max-width: 320px;
+  min-width: 260px;
+
+  cursor: default;
+}
+
+/*
+  Старое выделение строки больше не нужно:
+  выделение теперь показывает table-cell-selected
+*/
+.structure-table td.table-name-cell.row.sel {
+  background: transparent;
+}
+
+.structure-table td.table-name-cell > .label {
+  display: block;
+
+  width: 100%;
+  min-height: 22px;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  pointer-events: none;
+}
+
+/* Кнопки действий + / .. / > / x */
+.structure-table td.table-name-cell > .act {
+  position: absolute;
+
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  margin-left: 0;
+
+  visibility: hidden;
+
+  z-index: 2;
+}
+
+.structure-table td.table-name-cell:hover > .act {
+  visibility: visible;
+}
+
+/* Редактор названия */
+.structure-table td.table-name-cell > .edit {
+  display: block;
+
+  width: 100%;
+  min-height: 22px;
+
+  box-sizing: border-box;
+
+  padding: 0;
+  margin: 0;
+
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  font: inherit;
+
+
+  white-space: nowrap;
+  overflow: hidden;
+}

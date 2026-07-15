@@ -1,0 +1,178 @@
+/* =========================
+   Table upload cells
+   Cover / image / file
+   ========================= */
+
+.structure-table .table-cover-cell {
+  min-width: 150px;
+  width: 150px;
+  max-width: 150px;
+  vertical-align: middle;
+}
+
+.structure-table .table-cover-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.structure-table .table-cover-preview-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.structure-table .table-cover-preview {
+  width: 90px;
+  height: 54px;
+  object-fit: cover;
+  border: 1px solid #000;
+  background: #fff;
+  display: block;
+}
+
+.structure-table .table-cover-remove {
+  padding: 0;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  cursor: pointer;
+}
+
+.structure-table .table-cover-btn {
+  padding: 0 8px;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  font: inherit;
+
+  cursor: pointer;
+}
+
+.structure-table .table-cover-btn:hover,
+.structure-table .table-cover-remove:hover {
+  background: #f3f4f6;
+}
+
+.structure-table .table-extra-image-cell {
+  min-width: 150px;
+  width: 150px;
+  max-width: 150px;
+  vertical-align: middle;
+}
+
+.structure-table .table-image-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.structure-table .table-image-preview-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.structure-table .table-image-preview {
+  width: 90px;
+  height: 54px;
+  object-fit: cover;
+  border: 1px solid #000;
+  background: #fff;
+  display: block;
+}
+
+.structure-table .table-image-remove {
+  padding: 0;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  cursor: pointer;
+}
+
+.structure-table .table-image-btn {
+  padding: 0 8px;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  font: inherit;
+
+  cursor: pointer;
+}
+
+.structure-table .table-image-btn:hover,
+.structure-table .table-image-remove:hover {
+  background: #f3f4f6;
+}
+
+.structure-table .table-file-cell {
+  min-width: 170px;
+  width: 170px;
+  max-width: 170px;
+  vertical-align: middle;
+}
+
+.structure-table .table-file-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.structure-table .table-file-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 150px;
+}
+
+.structure-table .table-file-icon {
+  flex: 0 0 auto;
+}
+
+.structure-table .table-file-name {
+  display: inline-block;
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.structure-table .table-file-remove {
+  padding: 0;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  cursor: pointer;
+}
+
+.structure-table .table-file-btn {
+  padding: 0 8px;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  font: inherit;
+ 
+  cursor: pointer;
+}
+
+.structure-table .table-file-btn:hover,
+.structure-table .table-file-remove:hover {
+  background: #f3f4f6;
+}
+
+/* === Upload-ячейки таблицы: Обложка / Доп изображение / Файл === */
+
+.structure-table td.table-upload-cell {
+  box-sizing: border-box;
+  vertical-align: top;
+}
+
+.structure-table td.table-upload-cell > * {
+  box-sizing: border-box;
+}

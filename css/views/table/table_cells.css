@@ -1,0 +1,198 @@
+/* =========================
+   Vertical alignment
+   ========================= */
+
+.structure-table td {
+  vertical-align: middle !important;
+}
+
+/* =========================
+   Table cells
+   Общие ячейки / выделение / редакторы
+   ========================= */
+
+.structure-table td.table-cell {
+  cursor: default;
+  outline: none;
+}
+
+.structure-table td.table-cell-selected {
+  position: relative;
+  z-index: 5;
+  outline: 1px solid #000;
+  outline-offset: -1px;
+  box-shadow: none;
+}
+
+.structure-table td.table-cell-selected .row.sel {
+  background: transparent;
+}
+
+/* Выделенная строка по активной ячейке */
+
+.structure-table tr:has(td.table-cell-selected) > td {
+  background: #f3f4f6;
+}
+
+.structure-table tr:has(td.table-cell-selected) > td.table-cell-selected {
+  background: #f3f4f6;
+  position: relative;
+  z-index: 5;
+  outline: 1px solid #000;
+  outline-offset: -1px;
+  box-shadow: none;
+}
+
+/* Подсветка потомков выбранного объекта */
+
+.structure-table tr.table-selected-descendant-row > td {
+  background: #fff1f8;
+}
+
+/* Direct editable cells */
+
+.structure-table td.table-direct-cell {
+  min-width: 110px;
+  cursor: default;
+}
+
+.structure-table td.table-direct-cell.is-editing {
+  padding: 0;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #4f46e5;
+}
+
+.structure-table td.table-direct-cell.is-invalid {
+  box-shadow: inset 0 0 0 2px #dc2626;
+}
+
+/* Builtin cells */
+
+.structure-table td.table-builtin-cell {
+  cursor: default;
+}
+
+.structure-table td.table-builtin-cell.is-editing {
+  padding: 0;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #4f46e5;
+}
+
+/* Value wrapper */
+
+.table-cell-value {
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.table-cell-value.is-empty::before {
+  content: "";
+  opacity: 0.45;
+}
+
+/* Editors */
+
+.table-cell-editor {
+  width: 100%;
+  min-width: 100%;
+  height: 100%;
+  min-height: 28px;
+
+  box-sizing: border-box;
+
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  padding: 4px 6px;
+  font: inherit;
+}
+
+.table-cell-select-editor {
+  cursor: pointer;
+}
+
+.table-cell-textarea-editor {
+  resize: vertical;
+  min-height: 54px;
+}
+
+.table-cell-editor.is-invalid {
+  background: rgba(220, 38, 38, 0.08);
+}
+
+/* Mark / notes / icon базовые размеры */
+
+.structure-table td.table-mark-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table-mark-cell .mark-dot {
+  margin: 0 auto;
+}
+
+.structure-table td.table-notes-cell {
+  max-width: 220px;
+  width: 220px;
+  overflow: hidden;
+}
+
+.structure-table .table-icon-cell {
+  min-width: 70px;
+  width: 70px;
+  max-width: 70px;
+  padding: 0;
+}
+
+/* Plain property input */
+
+.structure-table .table-prop-input {
+  width: 100%;
+  height: 22px;
+  box-sizing: border-box;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+
+  padding: 2px 4px;
+}
+
+.structure-table .table-prop-input:focus {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #9ca3af;
+}
+
+/* =========================
+   Final table cell overrides
+   Финальные переопределения размеров ячеек
+   ========================= */
+
+.structure-table td.table-direct-cell {
+  min-width: 110px;
+  cursor: default;
+}
+
+.table-cell-value {
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.structure-table td.table-direct-cell.is-editing {
+  padding: 0;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #4f46e5;
+}
+
+.structure-table td.table-direct-cell.is-invalid {
+  box-shadow: inset 0 0 0 2px #dc2626;
+}

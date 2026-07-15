@@ -13,8 +13,7 @@
 
 /* Синий контур строки начала мультивыделения */
 .structure-table tbody tr.table-row-multi-anchor {
-  outline: 2px solid rgba(37, 99, 235, 0.9);
-  outline-offset: -2px;
+  outline: 1px solid #0b4f9c;
   position: relative;
   z-index: 2;
 }

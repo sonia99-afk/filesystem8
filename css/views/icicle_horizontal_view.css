@@ -25,12 +25,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  
-  /* .icicle-horizontal-node.sel {
-    outline: 2px solid #000;
-    outline-offset: -2px;
-  } */
-  
+
   .icicle-horizontal-node[data-id] .ordinal-badge {
     margin-right: 4px;
   }

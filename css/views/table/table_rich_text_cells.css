@@ -1,0 +1,102 @@
+/* =========================
+   Table rich-text cells
+   Description / Text
+   ========================= */
+
+.structure-table td.table-rich-text-cell,
+.structure-table td.table-notes-cell {
+  position: relative;
+  min-width: 180px;
+  max-width: 320px;
+  white-space: normal;
+}
+
+.structure-table .table-rich-cell-value {
+  min-height: 22px;
+  width: 100%;
+  box-sizing: border-box;
+
+  white-space: pre-wrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.structure-table .table-rich-cell-value.is-empty::before {
+  content: "";
+}
+
+.structure-table td.table-rich-cell-editing {
+  padding: 0;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #4f46e5;
+}
+
+.structure-table .table-rich-cell-editor {
+  width: 100%;
+  min-width: 100%;
+  min-height: 28px;
+
+  box-sizing: border-box;
+
+  padding: 4px 6px;
+  margin: 0;
+
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  color: #000;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.structure-table .table-rich-cell-editor-multiline {
+  min-height: 44px;
+}
+
+.structure-table td.table-notes-cell.table-rich-cell-editing > .table-rich-cell-editor,
+.structure-table td.table-rich-text-cell.table-rich-cell-editing > .table-rich-cell-editor {
+  display: block;
+
+  width: 100%;
+  min-width: 100%;
+  min-height: 22px;
+
+  box-sizing: border-box;
+
+  padding: 0;
+  margin: 0;
+
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Убираем принудительную высоту 44px,
+   из-за неё ячейка визуально подпрыгивает */
+.structure-table td.table-notes-cell.table-rich-cell-editing > .table-rich-cell-editor-multiline,
+.structure-table td.table-rich-text-cell.table-rich-cell-editing > .table-rich-cell-editor-multiline {
+  min-height: 22px;
+}
+
+/* Старые plain/builtin value-блоки для ID / Нумерация / Описание */
+.table-id-cell .table-cell-value,
+.table-ordinal-cell .table-cell-value,
+.table-notes-cell .table-cell-value {
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.table-notes-cell .table-cell-value {
+  white-space: pre-wrap;
+}

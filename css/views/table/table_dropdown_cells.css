@@ -1,0 +1,288 @@
+/* =========================
+   Table dropdown cells
+   Icon / tag / priority / focus / status
+   ========================= */
+
+.structure-table td.table-dropdown-cell,
+.structure-table td.table-compact-select-cell,
+.structure-table td.table-tag-compact-cell {
+  position: relative;
+  overflow: visible !important;
+  padding: 0;
+}
+
+.structure-table td.table-dropdown-cell.table-cell-selected,
+.structure-table td.table-compact-select-cell.table-cell-selected,
+.structure-table td.table-tag-compact-cell.table-cell-selected {
+  overflow: visible !important;
+}
+
+/* Compact select cells */
+
+.structure-table .table-compact-select-cell {
+  padding: 0;
+}
+
+/* Tag cell */
+
+.structure-table td.table-tag-compact-cell {
+  min-width: 150px;
+  width: 150px;
+  max-width: 150px;
+}
+
+.structure-table .table-tag-compact-control {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 22px;
+}
+
+.structure-table .table-tag-compact-view {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 22px;
+
+  box-sizing: border-box;
+  padding: 0 4px;
+
+  border: 0;
+  background: transparent;
+
+  color: #000;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  pointer-events: none;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.structure-table .table-tag-compact-view.is-empty::before {
+  content: "";
+}
+
+.structure-table .table-tag-compact-editor {
+  display: none;
+}
+
+.structure-table .table-tag-compact-control.is-editing .table-tag-compact-view {
+  display: none;
+}
+
+.structure-table .table-tag-compact-control.is-editing .table-tag-compact-editor {
+  display: block;
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+  min-height: 22px;
+}
+
+.structure-table .table-tag-compact-action[hidden] {
+  display: none;
+}
+
+/* Trigger */
+
+.structure-table .table-tag-compact-trigger {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  box-sizing: border-box;
+  padding: 0 18px 0 4px;
+
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  color: #000;
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+  position: relative;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.structure-table .table-tag-compact-trigger::after {
+  content: "▾";
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.8;
+}
+
+.structure-table .table-tag-compact-trigger:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Menu */
+
+.structure-table .table-tag-compact-menu {
+  position: absolute;
+  z-index: 100;
+
+  left: 0 !important;
+  right: auto !important;
+  top: 100%;
+
+  box-sizing: border-box;
+
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+
+  max-height: 190px;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  border: 1px solid #9ca3af;
+  background: #fff;
+  box-shadow: none;
+
+  white-space: nowrap;
+}
+
+.structure-table .table-tag-compact-menu[hidden] {
+  display: none;
+}
+
+.structure-table .table-tag-compact-control.is-editing:not(.is-menu-open) .table-tag-compact-menu {
+  display: none;
+}
+
+.structure-table .table-tag-compact-option {
+  display: block;
+
+  width: auto !important;
+  min-width: 100% !important;
+
+  box-sizing: border-box;
+  padding: 3px 6px;
+
+  border: 0;
+  background: #fff;
+
+  color: #000;
+  font: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.structure-table .table-tag-compact-option:hover,
+.structure-table .table-tag-compact-option:focus {
+  outline: none;
+  background: #e5e5e5;
+}
+
+.structure-table .table-tag-compact-option.is-current {
+  background: #e5e5e5;
+}
+
+/* Actions inside menu */
+
+.structure-table .table-tag-compact-actions {
+  display: flex;
+  gap: 4px;
+
+  width: auto !important;
+  min-width: 100% !important;
+
+  box-sizing: border-box;
+  padding: 4px;
+
+  border-top: 1px solid #9ca3af;
+  background: #fff;
+}
+
+.structure-table .table-tag-compact-action {
+  flex: 1 1 0;
+
+  height: 22px;
+  box-sizing: border-box;
+  padding: 0 6px;
+
+  border: 1px solid #9ca3af;
+  background: #fff;
+
+  color: #000;
+  font: inherit;
+
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.structure-table .table-tag-compact-action:hover,
+.structure-table .table-tag-compact-action:focus {
+  outline: none;
+  background: #e5e5e5;
+}
+
+/* Text inside dropdown cells should not overflow */
+
+.structure-table td.table-dropdown-cell .table-cell-value,
+.structure-table td.table-dropdown-cell .table-tag-compact-view,
+.structure-table td.table-dropdown-cell .table-tag-compact-trigger,
+.structure-table td.table-dropdown-cell .table-compact-select-view,
+.structure-table td.table-compact-select-cell .table-cell-value,
+.structure-table td.table-compact-select-cell .table-tag-compact-view,
+.structure-table td.table-compact-select-cell .table-tag-compact-trigger,
+.structure-table td.table-compact-select-cell .table-compact-select-view,
+.structure-table td.table-tag-compact-cell .table-cell-value,
+.structure-table td.table-tag-compact-cell .table-tag-compact-view,
+.structure-table td.table-tag-compact-cell .table-tag-compact-trigger,
+.structure-table td.table-tag-compact-cell .table-compact-select-view {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================
+   Final dropdown menu overrides
+   ========================= */
+
+.structure-table .table-tag-compact-menu {
+  position: absolute;
+  z-index: 100;
+
+  left: 0 !important;
+  right: auto !important;
+  top: 22px;
+
+  box-sizing: border-box;
+
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+
+  max-height: 190px;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  border: 1px solid #111;
+  background: #fff;
+
+  white-space: nowrap;
+}

@@ -1,0 +1,230 @@
+/* =========================
+   Table timer cells
+   Time counter / countdown / sessions
+   ========================= */
+
+.structure-table .table-time-cell {
+  vertical-align: top;
+  overflow: visible;
+}
+
+.structure-table .table-time-counter {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.structure-table .table-time-main {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  border: 1px solid #000;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.structure-table .table-time-btn,
+.structure-table .table-time-value {
+  border: 0;
+  border-right: 1px solid #e5e7eb;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  cursor: pointer;
+}
+
+.structure-table .table-time-play {
+  width: 48px;
+  background: #eef0f2;
+}
+
+.structure-table .table-time-value {
+  width: 96px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.structure-table .table-time-reset {
+  width: 48px;
+  border-right: 0;
+  background: #eef0f2;
+}
+
+.structure-table .table-time-btn:hover,
+.structure-table .table-time-value:hover {
+  background: #f3f4f6;
+}
+
+.structure-table .table-time-sessions {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  width: 320px;
+  max-height: 210px;
+  overflow: auto;
+
+  padding: 10px 12px;
+  border: 1px solid #000;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  z-index: 80;
+}
+
+.structure-table .table-time-session-empty {
+  color: #6b7280;
+
+}
+
+.structure-table .table-time-session {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  column-gap: 10px;
+  align-items: baseline;
+  padding: 4px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.structure-table .table-time-session:last-child {
+  border-bottom: 0;
+}
+
+.structure-table .table-time-session-duration {
+
+  font-variant-numeric: tabular-nums;
+
+}
+
+.structure-table .table-time-session-range {
+  color: #000;
+}
+
+.structure-table .table-time-sessions-title {
+  margin-bottom: 6px;
+  color: #6b7280;
+}
+
+/* =========================
+   Timer duration / remaining
+   ========================= */
+.table-timer-countdown-main {
+    height: 20px;
+    width: 194px !important;
+}
+
+.table-timer-duration {
+    width: 194px !important;
+    height: 20px;
+}
+
+.structure-table .table-timer-duration-cell,
+.structure-table .table-timer-remaining-cell {
+
+
+  vertical-align: top;
+  overflow: visible;
+}
+
+.structure-table .table-timer-duration,
+.structure-table .table-timer-countdown-main {
+  display: flex;
+  align-items: center;
+
+  border: 1px solid #000;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.structure-table .table-timer-countdown {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-timer-countdown-main {
+    height: 20px;
+}
+
+.structure-table .table-timer-btn,
+.structure-table .table-timer-duration-value,
+.structure-table .table-timer-countdown-btn,
+.structure-table .table-timer-countdown-value {
+  border: 0;
+  border-right: 1px solid #e5e7eb;
+  background: #fff;
+  color: #000;
+  font: inherit;
+
+
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.structure-table .table-timer-btn,
+.structure-table .table-timer-countdown-btn,
+.structure-table .table-timer-countdown-value {
+  cursor: pointer;
+}
+
+.structure-table .table-timer-btn {
+  width: 56px;
+  background: #eef0f2;
+}
+
+.structure-table .table-timer-duration-value {
+  width: 96px;
+}
+
+.structure-table .table-timer-countdown-play,
+.structure-table .table-timer-countdown-reset {
+  width: 54px;
+  background: #eef0f2;
+}
+
+.structure-table .table-timer-countdown-value {
+  width: 116px;
+}
+
+.structure-table .table-timer-btn:last-child,
+.structure-table .table-timer-countdown-reset {
+  border-right: 0;
+}
+
+.structure-table .table-timer-btn:hover,
+.structure-table .table-timer-countdown-btn:hover,
+.structure-table .table-timer-countdown-value:hover {
+  background: #f3f4f6;
+}
+
+.structure-table .table-timer-countdown-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* =========================
+   Duration mask editor
+   ========================= */
+
+.structure-table .table-duration-mask-editor {
+  width: 116px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid #e5e7eb;
+  outline: none;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  cursor: text;
+}
+
+.structure-table .table-duration-mask-editor.is-invalid {
+  color: #dc2626;
+  box-shadow: inset 0 0 0 1px #dc2626;
+}

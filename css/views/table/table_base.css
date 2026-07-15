@@ -1,0 +1,72 @@
+/* =========================
+   Table base
+   Общий layout таблицы
+   ========================= */
+
+.table-view {
+  min-width: max-content;
+}
+
+/* === Правый запас после таблицы === */
+
+#tree .table-view {
+  display: inline-block;
+  min-width: 100%;
+  padding-right: 63px;
+  box-sizing: content-box;
+}
+
+/* === Base table === */
+
+.structure-table {
+  border-collapse: collapse;
+  background: #fff;
+}
+
+#tree .structure-table {
+  table-layout: auto;
+  width: max-content;
+  min-width: max-content;
+}
+
+.structure-table th,
+.structure-table td {
+  border: 1px solid #cfcfcf;
+  padding: 0;
+  text-align: left;
+  vertical-align: top;
+  min-width: 90px;
+}
+
+#tree .structure-table th,
+#tree .structure-table td {
+  white-space: nowrap;
+}
+
+.structure-table th {
+  font-weight: 700;
+  background: #f7f7f7;
+}
+
+/* === Базовые ширины первых системных колонок === */
+
+.structure-table td:nth-child(1) {
+  width: 120px;
+}
+
+.structure-table td:nth-child(2) {
+  width: 120px;
+}
+
+.structure-table td:nth-child(3) {
+  width: 120px;
+}
+
+.structure-table td:nth-child(4) {
+  min-width: 120px;
+}
+
+.structure-table td:nth-child(5) {
+  min-width: 120px;
+  max-width: 120px;
+}

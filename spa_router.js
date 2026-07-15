@@ -16,8 +16,19 @@
   
       table: {
         css: [
-          "css/views/table_view.css",
-          "css/views/table_multi_select.css"
+          "css/views/table/table_base.css",
+          "css/views/table/table_cells.css",
+          "css/views/table/table_collapse_column.css",
+          "css/views/table/table_name_cell.css",
+          "css/views/table/table_dropdown_cells.css",
+          "css/views/table/table_datetime_cells.css",
+          "css/views/table/table_rich_text_cells.css",
+          "css/views/table/table_upload_cells.css",
+          "css/views/table/table_timer_cells.css",
+          "css/views/table/table_drag_drop.css",
+
+          "css/views/table/table_view.css",
+          "css/views/table/table_multi_select.css"
         ],
         js: [
           "table/table_props.js",
