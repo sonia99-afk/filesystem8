@@ -57,7 +57,7 @@
 
 .structure-table td.table-direct-cell.is-editing {
   padding: 0;
-  background: #fff;
+  
   box-shadow: inset 0 0 0 2px #4f46e5;
 }
 
@@ -73,7 +73,7 @@
 
 .structure-table td.table-builtin-cell.is-editing {
   padding: 0;
-  background: #fff;
+
   box-shadow: inset 0 0 0 2px #4f46e5;
 }
 
@@ -163,7 +163,7 @@
 }
 
 .structure-table .table-prop-input:focus {
-  background: #fff;
+  
   box-shadow: inset 0 0 0 1px #9ca3af;
 }
 
@@ -188,7 +188,6 @@
 
 .structure-table td.table-direct-cell.is-editing {
   padding: 0;
-  background: #fff;
   box-shadow: inset 0 0 0 2px #4f46e5;
 }
 
