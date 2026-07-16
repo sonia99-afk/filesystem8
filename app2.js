@@ -208,6 +208,37 @@ function isMarkHiddenId(id) {
   return !!holder?.classList.contains("mark-hidden-object");
 }
 
+function updateSchemaSelectionWithoutRender() {
+  const tree = document.getElementById("tree");
+  if (!tree || !selectedId) return false;
+
+  const previousRow = tree.querySelector(".row.sel");
+
+  if (previousRow) {
+    previousRow.classList.remove("sel");
+  }
+
+  const nextRow = tree.querySelector(
+    `.row[data-id="${cssEscape(selectedId)}"]`
+  );
+
+  if (!nextRow) {
+    return false;
+  }
+
+  nextRow.classList.add("sel");
+
+  if (treeHasFocus) {
+    nextRow.focus({
+      preventScroll: true,
+    });
+  }
+
+  window.schemaAutoscroll?.scrollSelectedIntoView?.();
+
+  return true;
+}
+
 function moveSelection(dir) {
   const flat = flatten();
   const visible = flat.filter(isSelectableVisibleId);
@@ -228,6 +259,22 @@ function moveSelection(dir) {
 
   selectedId = next;
   treeHasFocus = true;
+
+  /*
+    В обычной структуре не перестраиваем всё дерево.
+    Меняем только активную строку и запускаем автоскролл.
+  */
+  if (currentView === VIEW.SCHEMA) {
+    const updated = updateSchemaSelectionWithoutRender();
+
+    if (updated) {
+      return;
+    }
+  }
+
+  /*
+    Для других режимов пока сохраняем прежнее поведение.
+  */
   render();
 }
 
@@ -238,6 +285,14 @@ function goParent(fromId) {
     if (isSelectableVisibleId(p)) {
       selectedId = p;
       treeHasFocus = true;
+
+      if (
+        currentView === VIEW.SCHEMA &&
+        updateSchemaSelectionWithoutRender()
+      ) {
+        return;
+      }
+
       render();
       return;
     }
@@ -253,6 +308,14 @@ function goDeeper(fromId) {
 
   selectedId = deeper;
   treeHasFocus = true;
+
+  if (
+    currentView === VIEW.SCHEMA &&
+    updateSchemaSelectionWithoutRender()
+  ) {
+    return;
+  }
+
   render();
 }
 
@@ -277,53 +340,7 @@ function focusSelectedRow() {
   r.focus({ preventScroll: true });
 }
 
-let __selectedScrollRaf = null;
 
-function scrollSelectedIntoView() {
-  console.warn("scrollSelectedIntoView выключен для теста");
-  return;
-
-  const id = selectedId;
-  if (!id) return;
-
-  const el =
-    document.querySelector(`.row[data-id="${cssEscape(id)}"]`) ||
-    document.querySelector(`[data-id="${cssEscape(id)}"]`);
-
-  if (!el) return;
-
-  // Сохраняем горизонтальный скролл,
-  // чтобы выбранный объект не тянул таблицу/схему вправо-влево.
-  const savedScrolls = [];
-  let p = el.parentElement;
-
-  while (p) {
-    if (p.scrollWidth > p.clientWidth) {
-      savedScrolls.push({
-        el: p,
-        left: p.scrollLeft,
-      });
-    }
-
-    p = p.parentElement;
-  }
-
-  const windowScrollX = window.scrollX;
-
-  // Вертикально можно подтянуть выбранный объект,
-  // но горизонталь потом вернём обратно.
-  el.scrollIntoView({
-    block: "nearest",
-    inline: "nearest",
-    behavior: "auto",
-  });
-
-  savedScrolls.forEach((item) => {
-    item.el.scrollLeft = item.left;
-  });
-
-  window.scrollTo(windowScrollX, window.scrollY);
-}
 
 function syncProjectsSidebar() {
   const firstProjectItem = document.querySelector('.projects-list .project-item');
@@ -447,7 +464,7 @@ function render() {
     }
 
     syncViewOrientationButtons();
-    scrollSelectedIntoView();
+    window.schemaAutoscroll?.scrollSelectedIntoView?.();
     return;
   }
 
@@ -459,25 +476,24 @@ function render() {
     }
 
     syncViewOrientationButtons();
-    scrollSelectedIntoView();
+    window.schemaAutoscroll?.scrollSelectedIntoView?.();
     return;
   }
 
   if (currentView === VIEW.LIST) {
     window.renderListView?.();
-    scrollSelectedIntoView();
+    window.schemaAutoscroll?.scrollSelectedIntoView?.();
     return;
   }
 
   if (currentView === VIEW.TABLE) {
     window.renderTableView?.();
     syncViewButtons();
-    scrollSelectedIntoView();
     return;
   }
 
   renderSchemaView();
-  scrollSelectedIntoView();
+  window.schemaAutoscroll?.scrollSelectedIntoView?.();
 }
 
 function isTreeLocked() {

@@ -31,11 +31,10 @@
 /* Выделенная строка по активной ячейке */
 
 .structure-table tr:has(td.table-cell-selected) > td {
-  background: #f3f4f6;
+  background: #eaeaea;
 }
 
 .structure-table tr:has(td.table-cell-selected) > td.table-cell-selected {
-  background: #f3f4f6;
   position: relative;
   z-index: 5;
   outline: 1px solid #000;
@@ -46,7 +45,7 @@
 /* Подсветка потомков выбранного объекта */
 
 .structure-table tr.table-selected-descendant-row > td {
-  background: #fff1f8;
+  background: #f7f7f7;
 }
 
 /* Direct editable cells */
