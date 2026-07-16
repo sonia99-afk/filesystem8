@@ -65,6 +65,35 @@
     );
   }
 
+  function isSelectableTableRow(tr) {
+  if (!tr) return false;
+
+  const rowId = getRowIdFromTr(tr);
+  if (!rowId) return false;
+
+  /*
+    Та же проверка, которая используется
+    при навигации по структуре.
+
+    Она исключает:
+    - скрытые боковой кнопкой объекты;
+    - скрытые отметкой объекты;
+    - объекты внутри свёрнутой ветки;
+    - недоступные объекты в режиме фокуса.
+  */
+  if (typeof isSelectableVisibleId === "function") {
+    return isSelectableVisibleId(rowId);
+  }
+
+  /*
+    Если общая функция недоступна,
+    оставляем прежнее поведение.
+  */
+  return true;
+}
+
+  
+
   function getAllCells() {
     const table = getTable();
     if (!table) return [];
@@ -72,14 +101,21 @@
     return Array.from(table.querySelectorAll(`tbody td.${CELL_CLASS}`));
   }
 
-  function getRowsMatrix() {
-    const table = getTable();
-    if (!table) return [];
+function getRowsMatrix() {
+  const table = getTable();
+  if (!table) return [];
 
-    return Array.from(table.querySelectorAll("tbody tr")).map((tr) => {
-      return Array.from(tr.querySelectorAll(`td.${CELL_CLASS}`));
-    });
-  }
+  return Array.from(
+    table.querySelectorAll("tbody tr")
+  )
+    .filter(isSelectableTableRow)
+    .map((tr) => {
+      return Array.from(
+        tr.querySelectorAll(`td.${CELL_CLASS}`)
+      );
+    })
+    .filter((row) => row.length > 0);
+}
 
   function clearSelection() {
     getAllCells().forEach((cell) => {
@@ -180,40 +216,90 @@ function selectCell(td, options = {}) {
     window.tableMultiSelectBranch?.clear?.();
   }
 
-  function moveCell(currentCell, rowDelta, colDelta, options = {}) {
-    if (!currentCell) return false;
+function moveCell(currentCell, rowDelta, colDelta, options = {}) {
+  if (!currentCell) return false;
 
-    const matrix = getRowsMatrix();
-    if (!matrix.length) return false;
+  const matrix = getRowsMatrix();
+  if (!matrix.length) return false;
 
-    const rowIndex = Number(currentCell.dataset.rowIndex || 0);
-    const colIndex = Number(currentCell.dataset.colIndex || 0);
+  /*
+    Ищем текущую ячейку непосредственно
+    в отфильтрованной матрице видимых строк.
+  */
+  const currentRowIndex = matrix.findIndex((row) => {
+    return row.includes(currentCell);
+  });
 
-    const nextRowIndex = Math.max(
-      0,
-      Math.min(matrix.length - 1, rowIndex + rowDelta)
-    );
+  /*
+    Если выбранный объект только что скрыли,
+    текущей строки уже нет в матрице.
 
-    const nextRow = matrix[nextRowIndex];
-    if (!nextRow?.length) return false;
+    В таком случае переходим на первую
+    доступную видимую ячейку.
+  */
+  if (currentRowIndex < 0) {
+    const firstCell = matrix[0]?.[0];
 
-    const nextColIndex = Math.max(
-      0,
-      Math.min(nextRow.length - 1, colIndex + colDelta)
-    );
-
-    const nextCell = nextRow[nextColIndex];
-    if (!nextCell || nextCell === currentCell) return false;
+    if (!firstCell) return false;
 
     if (options.clearMultiSelection !== false) {
       clearTableMultiSelection();
     }
 
-    return selectCell(nextCell, {
+    return selectCell(firstCell, {
       focus: true,
       scroll: options.scroll !== false,
     });
   }
+
+  const currentRow = matrix[currentRowIndex];
+
+  /*
+    Горизонтальный индекс берём из текущей
+    строки, а не из dataset.rowIndex.
+  */
+  let currentColIndex = currentRow.indexOf(currentCell);
+
+  if (currentColIndex < 0) {
+    currentColIndex = Number(
+      currentCell.dataset.colIndex || 0
+    );
+  }
+
+  const nextRowIndex = Math.max(
+    0,
+    Math.min(
+      matrix.length - 1,
+      currentRowIndex + rowDelta
+    )
+  );
+
+  const nextRow = matrix[nextRowIndex];
+  if (!nextRow?.length) return false;
+
+  const nextColIndex = Math.max(
+    0,
+    Math.min(
+      nextRow.length - 1,
+      currentColIndex + colDelta
+    )
+  );
+
+  const nextCell = nextRow[nextColIndex];
+
+  if (!nextCell || nextCell === currentCell) {
+    return false;
+  }
+
+  if (options.clearMultiSelection !== false) {
+    clearTableMultiSelection();
+  }
+
+  return selectCell(nextCell, {
+    focus: true,
+    scroll: options.scroll !== false,
+  });
+}
 
   function moveSelectedCellBy(rowDelta, colDelta, options = {}) {
     const td = getSelectedCell();
