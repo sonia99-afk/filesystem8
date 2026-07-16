@@ -104,32 +104,24 @@
     window.treeHasFocus = true;
   }
 
-  function selectCell(td, options = {}) {
-    if (!td) return false;
+function selectCell(td, options = {}) {
+  if (!td) return;
 
-    clearSelection();
+  clearSelection();
 
-    td.classList.add(SELECTED_CLASS);
-    td.setAttribute("aria-selected", "true");
+  td.classList.add(SELECTED_CLASS);
+  td.setAttribute("aria-selected", "true");
 
-    saveSelectedCell(td);
+  saveSelectedCell(td);
 
-    if (options.focus !== false) {
-      td.focus({
-        preventScroll: true,
-      });
-    }
-
-    if (options.scroll !== false) {
-      td.scrollIntoView({
-        block: "nearest",
-        inline: "nearest",
-        behavior: "auto",
-      });
-    }
-
-    return true;
+  if (options.focus !== false) {
+    td.focus({ preventScroll: true });
   }
+
+  if (options.scroll !== false) {
+    window.tableAutoscroll?.scrollCellIntoView?.(td);
+  }
+}
 
   function findInitialCell() {
     const table = getTable();
@@ -426,30 +418,29 @@
     td.dataset.rowId = rowId;
     td.dataset.cellKey = td.dataset.cellKey || getCellKey(td, colIndex);
 
-    td.addEventListener("click", (e) => {
-      if (!isTableViewActive()) return;
+td.addEventListener("click", (e) => {
+  if (!isTableViewActive()) return;
 
-      e.stopPropagation();
+  e.stopPropagation();
 
-      selectCell(td, {
-        focus: true,
-        scroll: false,
-      });
-    });
+  selectCell(td, {
+    focus: true,
+    scroll: true,
+  });
+});
 
-    td.addEventListener("dblclick", (e) => {
-      if (!isTableViewActive()) return;
+td.addEventListener("dblclick", (e) => {
+  if (!isTableViewActive()) return;
 
-      e.preventDefault();
-      e.stopPropagation();
+  e.stopPropagation();
 
-      selectCell(td, {
-        focus: true,
-        scroll: false,
-      });
+  selectCell(td, {
+    focus: true,
+    scroll: true,
+  });
 
-      activateCell(td);
-    });
+  startEditCell(td);
+});
 
     td.addEventListener("keydown", handleCellKeydown);
   }

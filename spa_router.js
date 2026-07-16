@@ -58,7 +58,8 @@
           "table/table_cell_nav.js",
           "table/table_hotkeys.js",
           "table/table_drag_drop.js",
-          "table/table_multi_select.js"
+          "table/table_multi_select.js",
+          "table/table_autoscroll.js"
         ],
       },
 
