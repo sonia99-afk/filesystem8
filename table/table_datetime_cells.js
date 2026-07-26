@@ -356,6 +356,16 @@
 
     const inputs = [];
 
+    function closeCompositePickers() {
+  inputs.forEach((input) => {
+    window.tableDatePicker
+      ?.closeForInput?.(input);
+
+    window.tableTimePicker
+      ?.closeForInput?.(input);
+  });
+}
+
     let releaseHorizontalScrollLock = null;
 
 function lockHorizontalScroll() {
@@ -408,6 +418,7 @@ function unlockHorizontalScrollSoon() {
     }
 
     function closeEditor(options = {}) {
+      closeCompositePickers();
       syncView();
       wrap.classList.remove("is-editing", "is-invalid");
 
@@ -487,60 +498,254 @@ function unlockHorizontalScrollSoon() {
 
     wrap.openEditor = openEditor;
 
-    config.items.forEach((item, index) => {
-      if (index > 0) {
-        const separator = document.createElement("span");
-        separator.className = "table-composite-datetime-separator";
-        separator.textContent = item.separator || "→";
-        editor.appendChild(separator);
+config.items.forEach((item, index) => {
+  if (index > 0) {
+    const separator =
+      document.createElement("span");
+
+    separator.className =
+      "table-composite-datetime-separator";
+
+    separator.textContent =
+      item.separator || "→";
+
+    editor.appendChild(separator);
+  }
+
+  const input =
+    document.createElement("input");
+
+  input.className = [
+    "table-composite-datetime-input",
+    item.inputClass || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  input.type = item.type;
+  input.value =
+    getTableProp(node, item.key);
+
+  input.dataset.role =
+    item.role || item.key;
+
+  /*
+    Обёртка сохраняет существующий input,
+    но позволяет положить прозрачную кнопку
+    поверх его нативной иконки.
+  */
+  const pickerField =
+    document.createElement("div");
+
+  pickerField.className =
+    "table-composite-picker-field";
+
+  pickerField.dataset.pickerType =
+    item.type;
+
+  pickerField.dataset.role =
+    item.role || item.key;
+
+  const pickerHitArea =
+    document.createElement("button");
+
+  pickerHitArea.type = "button";
+
+  pickerHitArea.className =
+    "table-composite-picker-hit-area";
+
+  pickerHitArea.tabIndex = -1;
+
+  const isDate =
+    input.type === "date";
+
+  pickerHitArea.setAttribute(
+    "aria-label",
+    isDate
+      ? "Открыть календарь"
+      : "Открыть выбор времени"
+  );
+
+  pickerHitArea.title = isDate
+    ? "Открыть календарь"
+    : "Открыть выбор времени";
+
+  function getCurrentPicker() {
+    if (input.type === "date") {
+      return window.tableDatePicker;
+    }
+
+    if (input.type === "time") {
+      return window.tableTimePicker;
+    }
+
+    return null;
+  }
+
+  function closeOtherPicker() {
+    if (input.type === "date") {
+      window.tableTimePicker
+        ?.close?.();
+    } else if (input.type === "time") {
+      window.tableDatePicker
+        ?.close?.();
+    }
+  }
+
+  function openCurrentPicker() {
+    const picker =
+      getCurrentPicker();
+
+    if (!picker) return false;
+
+    closeOtherPicker();
+
+    return picker.open?.({
+      input,
+      anchor: pickerField,
+      trigger: pickerHitArea,
+    });
+  }
+
+  function toggleCurrentPicker() {
+    const picker =
+      getCurrentPicker();
+
+    if (!picker) return false;
+
+    closeOtherPicker();
+
+    return picker.toggle?.({
+      input,
+      anchor: pickerField,
+      trigger: pickerHitArea,
+    });
+  }
+
+  input.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    window.selectedId = node.id;
+    window.treeHasFocus = true;
+  });
+
+  input.addEventListener(
+    "dblclick",
+    (e) => {
+      e.stopPropagation();
+    }
+  );
+
+  /*
+    При переходе на любую часть составной
+    ячейки автоматически открывается
+    соответствующий кастомный виджет.
+  */
+  input.addEventListener("focus", () => {
+    if (
+      !wrap.classList.contains(
+        "is-editing"
+      )
+    ) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      if (
+        document.activeElement !== input
+      ) {
+        return;
       }
 
-      const input = document.createElement("input");
-      input.className = [
-        "table-composite-datetime-input",
-        item.inputClass || "",
-      ]
-        .filter(Boolean)
-        .join(" ");
-
-      input.type = item.type;
-      input.value = getTableProp(node, item.key);
-      input.dataset.role = item.role || item.key;
-
-      input.addEventListener("click", (e) => {
-        e.stopPropagation();
-
-        window.selectedId = node.id;
-        window.treeHasFocus = true;
-      });
-
-      input.addEventListener("dblclick", (e) => {
-        e.stopPropagation();
-      });
-
-      input.addEventListener("input", () => {
-        wrap.classList.remove("is-invalid");
-        input.classList.remove("is-invalid");
-      });
-
-      input.addEventListener("keydown", (e) => {
-        e.stopPropagation();
-
-        if (e.key === "Enter" || e.code === "NumpadEnter") {
-          e.preventDefault();
-          commit();
-          return;
-        }
-
-        if (e.key === "Escape") {
-          e.preventDefault();
-          closeEditor();
-        }
-      });
-
-      inputs.push(input);
-      editor.appendChild(input);
+      openCurrentPicker();
     });
+  });
+
+  input.addEventListener("input", () => {
+    wrap.classList.remove(
+      "is-invalid"
+    );
+
+    input.classList.remove(
+      "is-invalid"
+    );
+
+    window.tableDatePicker
+      ?.position?.();
+
+    window.tableTimePicker
+      ?.position?.();
+  });
+
+  input.addEventListener(
+    "change",
+    () => {
+      window.tableDatePicker
+        ?.position?.();
+
+      window.tableTimePicker
+        ?.position?.();
+    }
+  );
+
+  input.addEventListener(
+    "keydown",
+    (e) => {
+      e.stopPropagation();
+
+      if (
+        e.key === "Enter" ||
+        e.code === "NumpadEnter"
+      ) {
+        e.preventDefault();
+        commit();
+        return;
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeEditor();
+      }
+    }
+  );
+
+  /*
+    Нажатие по прозрачной зоне не должно
+    уводить фокус с input и запускать blur.
+  */
+  pickerHitArea.addEventListener(
+    "pointerdown",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+    }
+  );
+
+  pickerHitArea.addEventListener(
+    "click",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+
+      toggleCurrentPicker();
+
+      input.focus({
+        preventScroll: true,
+      });
+    }
+  );
+
+  inputs.push(input);
+
+  pickerField.appendChild(input);
+  pickerField.appendChild(
+    pickerHitArea
+  );
+
+  editor.appendChild(pickerField);
+});
 
     wrap.addEventListener("dblclick", openEditor);
 

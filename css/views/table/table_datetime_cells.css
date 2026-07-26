@@ -282,3 +282,71 @@
 .structure-table td.table-cell-selected .table-composite-datetime-view {
   background: transparent;
 }
+
+/* =========================
+   Custom picker buttons
+   inside composite cells
+   ========================= */
+
+.structure-table
+.table-composite-picker-field {
+  position: relative;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+
+  min-width: 0;
+  height: 22px;
+
+  box-sizing: border-box;
+}
+
+.structure-table
+.table-composite-picker-field
+> .table-composite-datetime-input {
+  display: block;
+  height: 22px;
+}
+
+/*
+  Прозрачная кнопка располагается поверх
+  существующей нативной иконки даты/времени.
+*/
+.structure-table
+.table-composite-picker-hit-area {
+  position: absolute;
+
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: 2;
+
+  width: 28px;
+
+  padding: 0;
+  margin: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+/*
+  Нативные иконки остаются видимыми,
+  но клики получает прозрачная кнопка.
+*/
+.structure-table
+.table-composite-picker-field
+> input[type="date"]
+::-webkit-calendar-picker-indicator,
+.structure-table
+.table-composite-picker-field
+> input[type="time"]
+::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  pointer-events: none;
+}

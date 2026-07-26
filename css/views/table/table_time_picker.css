@@ -1,12 +1,12 @@
 /* =========================
-   Floating time picker
+   Floating table time picker
    ========================= */
 
 .table-time-picker-popup {
   position: fixed;
   z-index: 10000;
 
-  width: 236px;
+  width: 180px;
   box-sizing: border-box;
 
   padding: 10px;
@@ -61,6 +61,23 @@
   border-radius: 6px;
 
   box-sizing: border-box;
+
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+
+  /*
+    Скрываем полосу прокрутки,
+    но оставляем прокрутку колёсиком,
+    тачпадом и пальцем.
+  */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.table-time-picker-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .table-time-picker-option {
@@ -123,8 +140,10 @@
   color: #000;
 }
 
-/* Обёртка временного input */
-
+/*
+  Обёртка используется только для размещения
+  прозрачной зоны над существующей иконкой часов.
+*/
 .table-direct-time-editor-wrap {
   position: relative;
 
@@ -146,8 +165,7 @@
 }
 
 /*
-  Прозрачная зона поверх существующей
-  иконки часов.
+  Прозрачная кнопка поверх правой части input.
 */
 .table-direct-time-picker-hit-area {
   position: absolute;
@@ -172,13 +190,12 @@
 }
 
 /*
-  Иконка браузера остаётся видна,
-  но больше сама не получает нажатия.
+  Существующая браузерная иконка остаётся видна,
+  но нажатие получает прозрачная кнопка над ней.
 */
 .structure-table
 .table-direct-cell
-.table-cell-input-editor[type="time"]
-::-webkit-calendar-picker-indicator {
+.table-cell-input-editor[type="time"]::-webkit-calendar-picker-indicator {
   opacity: 1;
   pointer-events: none;
 }

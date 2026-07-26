@@ -299,60 +299,153 @@
     return true;
   }
 
-  function handleTableCellTabNavigation(
-    e,
-    selectedCell
+  function focusAdjacentCompositeDateTimeInput(
+  active,
+  reverse = false
+) {
+  if (
+    !(active instanceof HTMLInputElement) ||
+    !active.classList.contains(
+      "table-composite-datetime-input"
+    )
   ) {
-    if (e.key !== "Tab") {
-      return false;
-    }
+    return false;
+  }
 
-    if (
-      e.ctrlKey ||
-      e.metaKey ||
-      e.altKey
-    ) {
-      return false;
-    }
+  const editor = active.closest(
+    ".table-composite-datetime-editor"
+  );
 
+  if (!editor) return false;
+
+  const inputs = Array.from(
+    editor.querySelectorAll(
+      "input.table-composite-datetime-input"
+    )
+  ).filter(isVisibleFocusableElement);
+
+  if (inputs.length < 2) {
+    return false;
+  }
+
+  const currentIndex =
+    inputs.indexOf(active);
+
+  if (currentIndex < 0) {
+    return false;
+  }
+
+  const nextIndex = reverse
+    ? (
+        currentIndex -
+        1 +
+        inputs.length
+      ) % inputs.length
+    : (
+        currentIndex +
+        1
+      ) % inputs.length;
+
+  const nextInput =
+    inputs[nextIndex];
+
+  /*
+    Сначала закрываем виджет текущего поля.
+    После focus автоматически откроется виджет
+    следующей даты или времени.
+  */
+  if (active.type === "date") {
+    window.tableDatePicker
+      ?.closeForInput?.(active);
+  }
+
+  if (active.type === "time") {
+    window.tableTimePicker
+      ?.closeForInput?.(active);
+  }
+
+  nextInput.focus({
+    preventScroll: true,
+  });
+
+  return true;
+}
+
+function handleTableCellTabNavigation(
+  e,
+  selectedCell
+) {
+  if (e.key !== "Tab") {
+    return false;
+  }
+
+  if (
+    e.ctrlKey ||
+    e.metaKey ||
+    e.altKey
+  ) {
+    return false;
+  }
+
+  const active =
+    document.activeElement;
+
+  /*
+    Для составных date/time-полей
+    не используем нативную Tab-навигацию
+    браузера между внутренними секциями.
+  */
+  if (
+    focusAdjacentCompositeDateTimeInput(
+      active,
+      e.shiftKey
+    )
+  ) {
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation?.();
 
-    if (
-      focusInsideSelectedTableCell(
-        selectedCell,
-        e.shiftKey
-      )
-    ) {
-      return true;
-    }
-
-    /*
-      Если в ячейке пока нет внутренних элементов,
-      пробуем открыть её редактор.
-    */
-    const opened =
-      window.tableCellEditors
-        ?.startEdit?.(selectedCell);
-
-    if (!opened) {
-      return true;
-    }
-
-    requestAnimationFrame(() => {
-      const freshSelectedCell =
-        getSelectedTableCell() ||
-        selectedCell;
-
-      focusInsideSelectedTableCell(
-        freshSelectedCell,
-        e.shiftKey
-      );
-    });
-
     return true;
   }
+
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation?.();
+
+  if (
+    focusInsideSelectedTableCell(
+      selectedCell,
+      e.shiftKey
+    )
+  ) {
+    return true;
+  }
+
+  /*
+    Если в ячейке пока нет внутренних элементов,
+    пробуем открыть её редактор.
+  */
+  const opened =
+    window.tableCellEditors
+      ?.startEdit?.(selectedCell);
+
+  if (!opened) {
+    return true;
+  }
+
+  requestAnimationFrame(() => {
+    const freshSelectedCell =
+      getSelectedTableCell() ||
+      selectedCell;
+
+    focusInsideSelectedTableCell(
+      freshSelectedCell,
+      e.shiftKey
+    );
+  });
+
+  return true;
+}
 
   function handleTableCellInnerNavigation(e) {
     if (!isTableViewActive()) return;
@@ -389,10 +482,16 @@
       return;
     }
 
-    const selectedCell =
-      getSelectedTableCell();
+const activeCell =
+  active instanceof Element
+    ? active.closest("td")
+    : null;
 
-    if (!selectedCell) return;
+const selectedCell =
+  getSelectedTableCell() ||
+  activeCell;
+
+if (!selectedCell) return;
 
     if (
       handleEscapeFromInnerControl(

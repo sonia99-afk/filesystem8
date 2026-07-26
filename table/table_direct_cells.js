@@ -264,53 +264,79 @@ if (editor.type === "date") {
   );
 }
 
-    if (editor.type === "date") {
-  editor.addEventListener(
+let timeEditorWrap = null;
+let timePickerHitArea = null;
+
+if (editor.type === "time") {
+  timeEditorWrap =
+    document.createElement("div");
+
+  timeEditorWrap.className =
+    "table-direct-time-editor-wrap";
+
+  timePickerHitArea =
+    document.createElement("button");
+
+  timePickerHitArea.type = "button";
+
+  timePickerHitArea.className =
+    "table-direct-time-picker-hit-area";
+
+  timePickerHitArea.tabIndex = -1;
+
+  timePickerHitArea.setAttribute(
+    "aria-label",
+    "Открыть выбор времени"
+  );
+
+  timePickerHitArea.title =
+    "Открыть выбор времени";
+
+  /*
+    Не даём кнопке забрать фокус
+    у временного input.
+  */
+  timePickerHitArea.addEventListener(
     "pointerdown",
     (e) => {
-      const rect =
-        editor.getBoundingClientRect();
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+    }
+  );
 
-      /*
-        Нативная иконка календаря находится
-        примерно в последних 32 пикселях input.
-      */
-      const pickerZoneLeft =
-        rect.right - 32;
-
-      if (e.clientX < pickerZoneLeft) {
-        return;
-      }
-
-      /*
-        Не разрешаем браузеру открыть
-        собственный календарь.
-      */
+  timePickerHitArea.addEventListener(
+    "click",
+    (e) => {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation?.();
 
-      window.tableDatePicker?.toggle?.({
+      window.tableTimePicker?.toggle?.({
         input: editor,
         anchor: td,
+        trigger: timePickerHitArea,
       });
 
       editor.focus({
         preventScroll: true,
       });
-    },
-    true
+    }
   );
 }
 
     let finished = false;
 
-    function finish(save, options = {}) {
-      if (finished) return;
-      window.tableDatePicker
-  ?.closeForInput?.(editor);
+function finish(save, options = {}) {
+  if (finished) return;
 
-      const mode = options.mode || "blur";
+  window.tableDatePicker
+    ?.closeForInput?.(editor);
+
+  window.tableTimePicker
+    ?.closeForInput?.(editor);
+
+  const mode = options.mode || "blur";
 
       if (save) {
         const nextValue = String(editor.value || "").trim();
@@ -385,11 +411,14 @@ requestAnimationFrame(() => {
       }
     });
 
-   editor.addEventListener("input", () => {
+editor.addEventListener("input", () => {
   editor.classList.remove("is-invalid");
   td.classList.remove("is-invalid");
 
   window.tableDatePicker
+    ?.position?.();
+
+  window.tableTimePicker
     ?.position?.();
 });
 
@@ -399,6 +428,9 @@ editor.addEventListener("change", () => {
 
   window.tableDatePicker
     ?.position?.();
+
+  window.tableTimePicker
+    ?.position?.();
 });
 
     editor.addEventListener("blur", () => {
@@ -407,16 +439,32 @@ editor.addEventListener("change", () => {
       });
     });
 
-    if (
+   if (
   editorWrap &&
   datePickerHitArea
 ) {
+  /*
+    Работающая дата — без изменений.
+  */
   editorWrap.appendChild(editor);
   editorWrap.appendChild(
     datePickerHitArea
   );
 
   td.appendChild(editorWrap);
+} else if (
+  timeEditorWrap &&
+  timePickerHitArea
+) {
+  /*
+    Отдельная обёртка для времени.
+  */
+  timeEditorWrap.appendChild(editor);
+  timeEditorWrap.appendChild(
+    timePickerHitArea
+  );
+
+  td.appendChild(timeEditorWrap);
 } else {
   td.appendChild(editor);
 }
@@ -435,14 +483,18 @@ requestAnimationFrame(() => {
     return;
   }
 
-  if (
-    editor instanceof HTMLInputElement &&
-    editor.type !== "time"
-  ) {
-    editor.select?.();
-  }
-});
+  if (editor.type === "time") {
+    window.tableTimePicker?.open?.({
+      input: editor,
+      anchor: td,
+      trigger: timePickerHitArea,
+    });
 
+    return;
+  }
+
+  editor.select?.();
+});
     return true;
   }
 

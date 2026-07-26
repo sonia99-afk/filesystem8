@@ -1,5 +1,5 @@
 // table/table_time_picker.js
-// Floating-виджет выбора времени для одиночных time-ячеек.
+// Собственный виджет выбора времени для одиночных time-ячеек.
 
 (function () {
   if (typeof window === "undefined") return;
@@ -10,6 +10,7 @@
   let popup = null;
   let activeInput = null;
   let activeAnchor = null;
+  let activeTrigger = null;
 
   let selectedHour = 0;
   let selectedMinute = 0;
@@ -84,6 +85,7 @@
     popup = null;
     activeInput = null;
     activeAnchor = null;
+    activeTrigger = null;
   }
 
   function closeForInput(input) {
@@ -112,7 +114,7 @@
     return button;
   }
 
-  function scrollSelectedIntoView(list) {
+  function centerSelectedOption(list) {
     const selected =
       list.querySelector(".is-selected");
 
@@ -124,12 +126,14 @@
       selected.offsetHeight / 2;
   }
 
-  function makeValueList({
-    type,
-    count,
-    selectedValue,
-    onSelect,
-  }) {
+  function createValueList(options) {
+    const {
+      type,
+      count,
+      selectedValue,
+      onSelect,
+    } = options;
+
     const list =
       document.createElement("div");
 
@@ -224,35 +228,37 @@
 
     minuteLabel.textContent = "Минуты";
 
-    const hourList = makeValueList({
-      type: "hours",
-      count: 24,
-      selectedValue: selectedHour,
+    const hourList =
+      createValueList({
+        type: "hours",
+        count: 24,
+        selectedValue: selectedHour,
 
-      onSelect(hour) {
-        selectedHour = hour;
-        renderPopup();
-      },
-    });
+        onSelect(hour) {
+          selectedHour = hour;
+          renderPopup();
+        },
+      });
 
-    const minuteList = makeValueList({
-      type: "minutes",
-      count: 60,
-      selectedValue: selectedMinute,
+    const minuteList =
+      createValueList({
+        type: "minutes",
+        count: 60,
+        selectedValue: selectedMinute,
 
-      onSelect(minute) {
-        selectedMinute = minute;
+        onSelect(minute) {
+          selectedMinute = minute;
 
-        setInputValue(
-          formatTime(
-            selectedHour,
-            selectedMinute
-          )
-        );
+          setInputValue(
+            formatTime(
+              selectedHour,
+              selectedMinute
+            )
+          );
 
-        close();
-      },
-    });
+          close();
+        },
+      });
 
     hourGroup.appendChild(hourLabel);
     hourGroup.appendChild(hourList);
@@ -266,8 +272,8 @@
     container.appendChild(columns);
 
     requestAnimationFrame(() => {
-      scrollSelectedIntoView(hourList);
-      scrollSelectedIntoView(minuteList);
+      centerSelectedOption(hourList);
+      centerSelectedOption(minuteList);
     });
   }
 
@@ -353,8 +359,8 @@
     );
 
     /*
-      Виджет не должен забирать фокус
-      у временного input.
+      Нажатия внутри виджета не должны
+      уводить фокус с временного input.
     */
     popup.addEventListener(
       "pointerdown",
@@ -404,11 +410,13 @@
     );
 
     let top =
-      anchorRect.bottom + POPUP_GAP;
+      anchorRect.bottom +
+      POPUP_GAP;
 
     if (
       top + popupRect.height >
-      window.innerHeight - VIEWPORT_GAP
+      window.innerHeight -
+        VIEWPORT_GAP
     ) {
       top =
         anchorRect.top -
@@ -462,20 +470,22 @@
     }
 
     /*
-      Одновременно показываем только
-      один наш виджет.
+      Календарь даты и выбор времени
+      не должны быть открыты одновременно.
     */
     window.tableDatePicker?.close?.();
 
     activeInput = input;
     activeAnchor = anchor;
+    activeTrigger =
+      options.trigger || null;
 
-    const value =
+    const parsed =
       parseTime(input.value) ||
       getCurrentTime();
 
-    selectedHour = value.hour;
-    selectedMinute = value.minute;
+    selectedHour = parsed.hour;
+    selectedMinute = parsed.minute;
 
     renderPopup();
 
@@ -510,7 +520,8 @@
 
       if (
         popup.contains(target) ||
-        activeInput?.contains?.(target)
+        activeInput?.contains?.(target) ||
+        activeTrigger?.contains?.(target)
       ) {
         return;
       }
