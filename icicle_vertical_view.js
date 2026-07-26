@@ -251,38 +251,6 @@
         return;
       }
 
-      if (isHotkey(e, "navUp")) {
-        e.preventDefault();
-        e.stopPropagation();
-        selectedId = node.id;
-        moveSelection(-1);
-        return;
-      }
-
-      if (isHotkey(e, "navDown")) {
-        e.preventDefault();
-        e.stopPropagation();
-        selectedId = node.id;
-        moveSelection(+1);
-        return;
-      }
-
-      if (isHotkey(e, "navLeft")) {
-        e.preventDefault();
-        e.stopPropagation();
-        selectedId = node.id;
-        goParent(node.id);
-        return;
-      }
-
-      if (isHotkey(e, "navRight")) {
-        e.preventDefault();
-        e.stopPropagation();
-        selectedId = node.id;
-        goDeeper(node.id);
-        return;
-      }
-
       if (isHotkey(e, "moveUp")) {
         e.preventDefault();
         e.stopPropagation();

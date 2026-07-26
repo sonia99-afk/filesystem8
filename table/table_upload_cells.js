@@ -2,9 +2,9 @@
 // Upload-ячейки табличного отображения.
 //
 // Здесь лежит логика для:
-// - Обложка
-// - Доп изображение
-// - Файл
+// - Обложка — одно изображение
+// - Доп изображение — несколько изображений
+// - Файл — несколько файлов
 
 (function () {
   if (typeof window === "undefined") return;
@@ -88,7 +88,12 @@
     if (name.endsWith(".doc") || name.endsWith(".docx")) return "📘";
     if (name.endsWith(".xls") || name.endsWith(".xlsx")) return "📗";
     if (name.endsWith(".ppt") || name.endsWith(".pptx")) return "📙";
-    if (name.endsWith(".zip") || name.endsWith(".rar") || name.endsWith(".7z")) {
+
+    if (
+      name.endsWith(".zip") ||
+      name.endsWith(".rar") ||
+      name.endsWith(".7z")
+    ) {
       return "🗜️";
     }
 
@@ -126,6 +131,39 @@
     reader.readAsDataURL(file);
   }
 
+  function readFileAsDataUrlPromise(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const dataUrl = String(reader.result || "");
+
+        if (!dataUrl) {
+          reject(
+            new Error(
+              `Не удалось прочитать файл: ${file?.name || "файл"}`
+            )
+          );
+
+          return;
+        }
+
+        resolve(dataUrl);
+      };
+
+      reader.onerror = () => {
+        reject(
+          reader.error ||
+            new Error(
+              `Не удалось прочитать файл: ${file?.name || "файл"}`
+            )
+        );
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
   function makeHiddenFileInput(options = {}) {
     const input = document.createElement("input");
 
@@ -138,6 +176,10 @@
 
     if (options.className) {
       input.className = options.className;
+    }
+
+    if (options.multiple) {
+      input.multiple = true;
     }
 
     input.addEventListener("click", (e) => {
@@ -175,22 +217,89 @@
     return button;
   }
 
+  /* =========================================================
+     Нормализация старых и новых сохранённых значений
+  ========================================================= */
+
+  function normalizeStoredFiles(value) {
+    if (Array.isArray(value)) {
+      return value.filter((item) => {
+        return item && typeof item === "object" && item.dataUrl;
+      });
+    }
+
+    /*
+      Поддержка старого одиночного файла.
+    */
+    if (value && typeof value === "object" && value.dataUrl) {
+      return [value];
+    }
+
+    return [];
+  }
+
+  function getStoredImageUrl(item) {
+    if (typeof item === "string") {
+      return item;
+    }
+
+    if (item && typeof item === "object") {
+      return String(item.dataUrl || item.url || "");
+    }
+
+    return "";
+  }
+
+  function normalizeStoredImages(value) {
+    if (Array.isArray(value)) {
+      return value
+        .map(getStoredImageUrl)
+        .filter(Boolean);
+    }
+
+    /*
+      Поддержка старого одиночного изображения.
+    */
+    const oldUrl = getStoredImageUrl(value);
+
+    return oldUrl ? [oldUrl] : [];
+  }
+
+  /* =========================================================
+     Несколько файлов
+  ========================================================= */
+
   function makeTableFileControl(node, key) {
-    const value = getTableProp(node, key);
+    const files = normalizeStoredFiles(
+      getTableProp(node, key)
+    );
 
     const wrap = document.createElement("div");
     wrap.className = "table-file-control";
 
-    const fileInput = makeHiddenFileInput();
+    const list = document.createElement("div");
+    list.className = "table-file-list";
 
-    const uploadBtn = makeUploadButton("загрузить файл", "table-file-btn");
+    const fileInput = makeHiddenFileInput({
+      multiple: true,
+    });
+
+    const uploadBtn = makeUploadButton(
+      files.length
+        ? "добавить файлы"
+        : "загрузить файлы",
+      "table-file-btn"
+    );
 
     function selectNode(e) {
       selectUploadTableCellFromEvent(e, node);
     }
 
     wrap.addEventListener("click", selectNode);
-    wrap.addEventListener("dblclick", (e) => e.stopPropagation());
+
+    wrap.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+    });
 
     uploadBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -200,36 +309,67 @@
       fileInput.click();
     });
 
-    fileInput.addEventListener("change", () => {
-      const file = fileInput.files?.[0];
-      if (!file) return;
+    fileInput.addEventListener("change", async () => {
+      const selectedFiles = Array.from(
+        fileInput.files || []
+      );
 
-      readFileAsDataUrl(file, (dataUrl) => {
-        setTableProp(node, key, {
-          name: file.name,
-          type: file.type || "",
-          size: file.size || 0,
-          dataUrl,
-        });
+      if (!selectedFiles.length) return;
+
+      try {
+        const addedFiles = await Promise.all(
+          selectedFiles.map(async (file) => {
+            const dataUrl =
+              await readFileAsDataUrlPromise(file);
+
+            return {
+              name: file.name,
+              type: file.type || "",
+              size: file.size || 0,
+              dataUrl,
+            };
+          })
+        );
+
+        const currentFiles = normalizeStoredFiles(
+          getTableProp(node, key)
+        );
+
+        setTableProp(node, key, [
+          ...currentFiles,
+          ...addedFiles,
+        ]);
 
         fileInput.value = "";
 
         rerender();
-      });
+      } catch (error) {
+        console.error(error);
+
+        alert(
+          "Не удалось загрузить один или несколько файлов."
+        );
+
+        fileInput.value = "";
+      }
     });
 
-    if (value && typeof value === "object") {
+    files.forEach((fileData, index) => {
       const fileBox = document.createElement("div");
+
       fileBox.className = "table-file-box";
+      fileBox.dataset.fileIndex = String(index);
 
       const icon = document.createElement("span");
+
       icon.className = "table-file-icon";
-      icon.textContent = getFileIcon(value);
+      icon.textContent = getFileIcon(fileData);
 
       const name = document.createElement("span");
+
       name.className = "table-file-name";
-      name.textContent = value.name || "файл";
-      name.title = value.name || "файл";
+      name.textContent = fileData.name || "файл";
+      name.title = fileData.name || "файл";
 
       const removeBtn = makeRemoveButton(
         "table-file-remove",
@@ -238,7 +378,17 @@
           window.selectedId = node.id;
           window.treeHasFocus = true;
 
-          setTableProp(node, key, "");
+          const currentFiles = normalizeStoredFiles(
+            getTableProp(node, key)
+          );
+
+          const nextFiles = currentFiles.filter(
+            (_, currentIndex) => {
+              return currentIndex !== index;
+            }
+          );
+
+          setTableProp(node, key, nextFiles);
 
           rerender();
         }
@@ -248,7 +398,11 @@
       fileBox.appendChild(name);
       fileBox.appendChild(removeBtn);
 
-      wrap.appendChild(fileBox);
+      list.appendChild(fileBox);
+    });
+
+    if (files.length) {
+      wrap.appendChild(list);
     }
 
     wrap.appendChild(uploadBtn);
@@ -257,24 +411,40 @@
     return wrap;
   }
 
+  /* =========================================================
+     Несколько дополнительных изображений
+  ========================================================= */
+
   function makeTableImageControl(node, key) {
-    const value = getTableProp(node, key);
+    const images = normalizeStoredImages(
+      getTableProp(node, key)
+    );
 
     const wrap = document.createElement("div");
     wrap.className = "table-image-control";
 
+    const list = document.createElement("div");
+    list.className = "table-image-preview-list";
+
     const fileInput = makeHiddenFileInput({
       accept: "image/*",
+      multiple: true,
     });
 
-    const uploadBtn = makeUploadButton("загрузить", "table-image-btn");
+    const uploadBtn = makeUploadButton(
+      images.length ? "добавить" : "загрузить",
+      "table-image-btn"
+    );
 
     function selectNode(e) {
       selectNodeOnly(e, node);
     }
 
     wrap.addEventListener("click", selectNode);
-    wrap.addEventListener("dblclick", (e) => e.stopPropagation());
+
+    wrap.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+    });
 
     uploadBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -286,34 +456,71 @@
       fileInput.click();
     });
 
-    fileInput.addEventListener("change", () => {
-      const file = fileInput.files?.[0];
+    fileInput.addEventListener("change", async () => {
+      const selectedFiles = Array.from(
+        fileInput.files || []
+      );
 
-      if (!file) return;
+      if (!selectedFiles.length) return;
 
-      if (!isImageFile(file)) {
-        alert("Можно загрузить только изображение.");
+      const invalidFiles = selectedFiles.filter((file) => {
+        return !isImageFile(file);
+      });
+
+      if (invalidFiles.length) {
+        alert(
+          "В колонку «Доп изображение» можно загружать только изображения."
+        );
+
         fileInput.value = "";
         return;
       }
 
-      readFileAsDataUrl(file, (dataUrl) => {
-        setTableProp(node, key, dataUrl);
+      try {
+        const addedImages = await Promise.all(
+          selectedFiles.map((file) => {
+            return readFileAsDataUrlPromise(file);
+          })
+        );
+
+        const currentImages = normalizeStoredImages(
+          getTableProp(node, key)
+        );
+
+        setTableProp(node, key, [
+          ...currentImages,
+          ...addedImages,
+        ]);
 
         fileInput.value = "";
 
         rerender();
-      });
+      } catch (error) {
+        console.error(error);
+
+        alert(
+          "Не удалось загрузить одно или несколько изображений."
+        );
+
+        fileInput.value = "";
+      }
     });
 
-    if (value) {
-      const previewBox = document.createElement("div");
-      previewBox.className = "table-image-preview-box";
+    images.forEach((imageUrl, index) => {
+      const previewBox =
+        document.createElement("div");
+
+      previewBox.className =
+        "table-image-preview-box";
+
+      previewBox.dataset.imageIndex =
+        String(index);
 
       const img = document.createElement("img");
+
       img.className = "table-image-preview";
-      img.src = value;
-      img.alt = "Доп изображение";
+      img.src = imageUrl;
+      img.alt = `Доп изображение ${index + 1}`;
 
       const removeBtn = makeRemoveButton(
         "table-image-remove",
@@ -322,7 +529,18 @@
           window.selectedId = node.id;
           window.treeHasFocus = true;
 
-          setTableProp(node, key, "");
+          const currentImages =
+            normalizeStoredImages(
+              getTableProp(node, key)
+            );
+
+          const nextImages = currentImages.filter(
+            (_, currentIndex) => {
+              return currentIndex !== index;
+            }
+          );
+
+          setTableProp(node, key, nextImages);
 
           rerender();
         }
@@ -331,7 +549,11 @@
       previewBox.appendChild(img);
       previewBox.appendChild(removeBtn);
 
-      wrap.appendChild(previewBox);
+      list.appendChild(previewBox);
+    });
+
+    if (images.length) {
+      wrap.appendChild(list);
     }
 
     wrap.appendChild(uploadBtn);
@@ -339,6 +561,10 @@
 
     return wrap;
   }
+
+  /* =========================================================
+     Одна обложка — оставляем прежнее поведение
+  ========================================================= */
 
   function makeTableCoverCell(node) {
     const td = document.createElement("td");
@@ -364,7 +590,10 @@
     }
 
     td.addEventListener("click", selectNode);
-    td.addEventListener("dblclick", (e) => e.stopPropagation());
+
+    td.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+    });
 
     const uploadBtn = makeUploadButton(
       value ? "заменить" : "загрузить",
@@ -387,7 +616,10 @@
       if (!file) return;
 
       if (!isImageFile(file)) {
-        alert("Можно загрузить только изображение.");
+        alert(
+          "Можно загрузить только изображение."
+        );
+
         fileInput.value = "";
         return;
       }
@@ -402,10 +634,14 @@
     });
 
     if (value) {
-      const previewBox = document.createElement("div");
-      previewBox.className = "table-cover-preview-box";
+      const previewBox =
+        document.createElement("div");
+
+      previewBox.className =
+        "table-cover-preview-box";
 
       const img = document.createElement("img");
+
       img.className = "table-cover-preview";
       img.src = value;
       img.alt = "Обложка";
@@ -438,20 +674,45 @@
   }
 
   window.tableUploadCells = {
-    selectFromEvent: selectUploadTableCellFromEvent,
-    bindSelection: bindUploadTableCellSelection,
-    markCell: markTableUploadCell,
+    selectFromEvent:
+      selectUploadTableCellFromEvent,
+
+    bindSelection:
+      bindUploadTableCellSelection,
+
+    markCell:
+      markTableUploadCell,
+
     getFileIcon,
-    makeFileControl: makeTableFileControl,
-    makeImageControl: makeTableImageControl,
-    makeCoverCell: makeTableCoverCell,
+
+    makeFileControl:
+      makeTableFileControl,
+
+    makeImageControl:
+      makeTableImageControl,
+
+    makeCoverCell:
+      makeTableCoverCell,
   };
 
-  window.selectUploadTableCellFromEvent = selectUploadTableCellFromEvent;
-  window.bindUploadTableCellSelection = bindUploadTableCellSelection;
-  window.markTableUploadCell = markTableUploadCell;
-  window.getFileIcon = getFileIcon;
-  window.makeTableFileControl = makeTableFileControl;
-  window.makeTableImageControl = makeTableImageControl;
-  window.makeTableCoverCell = makeTableCoverCell;
+  window.selectUploadTableCellFromEvent =
+    selectUploadTableCellFromEvent;
+
+  window.bindUploadTableCellSelection =
+    bindUploadTableCellSelection;
+
+  window.markTableUploadCell =
+    markTableUploadCell;
+
+  window.getFileIcon =
+    getFileIcon;
+
+  window.makeTableFileControl =
+    makeTableFileControl;
+
+  window.makeTableImageControl =
+    makeTableImageControl;
+
+  window.makeTableCoverCell =
+    makeTableCoverCell;
 })();

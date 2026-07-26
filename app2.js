@@ -792,17 +792,6 @@ row.appendChild(label);
       return;
     }
 
-    if (isHotkey(e, "navLeft")) {
-      e.preventDefault();
-      goParent(n.id);
-      return;
-    }
-
-    if (isHotkey(e, "navRight")) {
-      e.preventDefault();
-      goDeeper(n.id);
-      return;
-    }
 
     if (isHotkey(e, "navUp")) {
       e.preventDefault();
@@ -1026,12 +1015,31 @@ document.getElementById('tree').addEventListener('click', (e) => {
   render();
 });
 
-window.addEventListener('keydown', (e) => {
-  if (isTreeLocked()) return;
+window.addEventListener(
+  "keydown",
+  (e) => {
+    if (isTreeLocked()) return;
 
-  if (currentView === VIEW.TABLE) {
-    return;
-  }
+    /*
+      Старый глобальный обработчик
+      относится только к основной группе.
+    */
+    if (
+      window.hotkeysViewGroup &&
+      !window.hotkeysViewGroup.isMain()
+    ) {
+      return;
+    }
+
+    /*
+      Запасной вариант для старого подключения.
+    */
+    if (
+      !window.hotkeysViewGroup &&
+      currentView === VIEW.TABLE
+    ) {
+      return;
+    }
 
   const active = document.activeElement;
   const isRow = active && active.classList && active.classList.contains('row');

@@ -1,0 +1,131 @@
+/* ui_toggle.css
+   Универсальный компонент тумблера.
+
+   Состояния:
+   aria-checked="true"  — включён;
+   aria-checked="false" — выключен;
+   disabled             — недоступен.
+*/
+
+.ui-toggle-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.ui-toggle-field__title {
+  max-width: 130px;
+
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.15;
+  color: #222;
+}
+
+.ui-toggle-field__row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Сам тумблер */
+
+.ui-toggle {
+  position: relative;
+
+  width: 30px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+
+  background: #a8a8a8;
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  transition:
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.ui-toggle::before {
+  content: "";
+
+  position: absolute;
+  top: 2px;
+  left: 2px;
+
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.18);
+
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+/* Включён */
+
+.ui-toggle[aria-checked="true"] {
+  background: #34c759;
+}
+
+.ui-toggle[aria-checked="true"]::before {
+  transform: translateX(14px);
+}
+
+/* Фокус с клавиатуры */
+
+.ui-toggle:focus-visible {
+  outline: 2px solid rgba(52, 199, 89, 0.38);
+  outline-offset: 2px;
+}
+
+/* Недоступен */
+
+.ui-toggle:disabled,
+.ui-toggle[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.ui-toggle:disabled[aria-checked="true"],
+.ui-toggle[aria-disabled="true"][aria-checked="true"] {
+  background: #99e3ac;
+}
+
+.ui-toggle:disabled[aria-checked="false"],
+.ui-toggle[aria-disabled="true"][aria-checked="false"] {
+  background: #e2e2e2;
+}
+
+/* Подпись справа */
+
+.ui-toggle-field__label {
+  font-size: 10px;
+  line-height: 1;
+  color: #777;
+  user-select: none;
+}
+
+/* Дополнительная строка состояния — необязательная */
+
+.ui-toggle-field__status {
+  min-height: 14px;
+
+  font-size: 10px;
+  line-height: 1.2;
+  color: #8a8a8a;
+}

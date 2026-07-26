@@ -22,6 +22,14 @@
   <link rel="stylesheet" href="css/views/schema.css" />
   
   <link rel="stylesheet" href="css/ui.css" />
+
+  <link rel="stylesheet" href="css/components/ui_toggle.css"/>
+
+<link rel="stylesheet" href="css/panels/hotkeys_panel_mode.css"/>
+
+<link rel="stylesheet" href="css/panels/hotkeys_modal.css" />
+
+<link rel="stylesheet" href="css/panels/hotkeys_sidebar.css" />
 </head>
 <body>
 
@@ -36,6 +44,42 @@
           </div>
           
           <button class="project-add" type="button">+ новый</button>
+
+          <div class="leftbar-footer">
+
+  <div class="ui-toggle-field hotkeys-panel-mode-control">
+
+   <button
+  id="hotkeysPanelOpenBtn"
+  class="hotkeys-panel-open-btn"
+  type="button"
+>
+  Список функций<br>
+  и горячие клавиши
+</button>
+
+    <div class="ui-toggle-field__row">
+
+      <button
+        id="hotkeysPanelModeToggle"
+        class="ui-toggle"
+        type="button"
+        role="switch"
+        aria-checked="true"
+        aria-label="Открывать список функций сбоку"
+        data-ui-toggle
+        data-toggle-name="hotkeys-panel-sidebar"
+      ></button>
+
+      <span class="ui-toggle-field__label">
+        открывать сбоку
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
         </div>
   
       <div class="hint">
@@ -251,27 +295,605 @@
     
   
    
-      <aside class="sidebar">
-        <button class="toggle-right"><img src="icons/icon2.png" class="iconsize" /></button>
-        <div class="panel-title">Список функций и горячие клавиши</div>
-        <table class="hotkeys">
-          <thead>
-            <tr>
-              <th></th>
-              <th></th>
-              <th colspan="2">Функция</th>
-              <th>Описание</th>
-              <th>Клавиатура</th>
-              <th>Мышь</th>
-              <th>Интерфейс</th>
-            </tr>
-          </thead>
-        
-          <tbody>
-            <!-- Общее -->
-            <tr>
-              <td rowspan="3">Общее</td>
-              <td rowspan="3"></td>
+<aside
+  id="hotkeysPanel"
+  class="sidebar"
+  aria-hidden="false"
+>
+  <!--
+    Старую кнопку оставляем в DOM для совместимости
+    с panel_toggle.js, но визуально полностью скрываем.
+  -->
+  <button
+    class="toggle-right"
+    type="button"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <img
+      src="icons/icon2.png"
+      class="iconsize"
+      alt=""
+    />
+  </button>
+
+  <div class="hotkeys-panel-header">
+
+    <div class="panel-title">
+      Список функций и горячие клавиши
+    </div>
+
+      <button
+      id="hotkeysPanelCloseBtn"
+      class="hotkeys-panel-close-btn"
+      type="button"
+      aria-label="Закрыть список функций"
+      title="Закрыть"
+    >
+      ×
+    </button>
+
+  </div>
+
+<div class="hotkeys-panel-scroll">
+
+  <section class="hotkeys-section">
+
+<div class="hotkeys-navigation-controls">
+
+  <span class="view-switcher hotkeys-group-switcher">
+
+    <button
+      type="button"
+      class="btnn hotkeys-group-btn is-active"
+      data-hotkeys-group="schema"
+      aria-pressed="true"
+    >
+      Горизонтальный
+    </button>
+
+    <button
+      type="button"
+      class="btnn hotkeys-group-btn"
+      data-hotkeys-group="vertical"
+      aria-pressed="false"
+    >
+      Вертикальный
+    </button>
+
+    <button
+      type="button"
+      class="btnn hotkeys-group-btn"
+      data-hotkeys-group="table"
+      aria-pressed="false"
+    >
+      Таблица
+    </button>
+
+  </span>
+
+</div>
+
+<div class="hotkeys-section-title">
+Навигация
+</div>
+
+
+
+<table class="hotkeys hotkeys-aligned">
+
+  <colgroup>
+  <col class="hotkeys-col-section" />
+  <col class="hotkeys-col-subsection" />
+  <col class="hotkeys-col-function" />
+  <col class="hotkeys-col-description" />
+  <col class="hotkeys-col-keyboard" />
+  <col class="hotkeys-col-mouse" />
+  <col class="hotkeys-col-interface" />
+</colgroup>
+
+<thead>
+<tr>
+
+<th></th>
+<th colspan="2">Функция</th>
+<th>Описание</th>
+<th>Клавиатура</th>
+<th>Мышь</th>
+<th>Интерфейс</th>
+
+</tr>
+</thead>
+
+<tbody>
+ <!-- Навигация -->
+
+<!-- ======================================================
+     ВЫБОР — СТРУКТУРА
+     ====================================================== -->
+
+<tr data-selection-view="schema">
+  <td rowspan="8">Выбор</td>
+
+  <td rowspan="2">По списку</td>
+  <td>Вверх</td>
+  <td rowspan="2"></td>
+
+  <td
+    data-action="navUp"
+    data-fixed-key="ArrowUp"
+  ></td>
+
+  <td rowspan="8" data-action="navClick">
+    Click
+  </td>
+
+  <td rowspan="8" style="color: gray;">
+    нет, не нужно
+  </td>
+</tr>
+
+<tr data-selection-view="schema">
+  <td>Вниз</td>
+
+  <td
+    data-action="navDown"
+    data-fixed-key="ArrowDown"
+  ></td>
+</tr>
+
+<tr
+  data-selection-view="schema"
+  class="hotkeys-view-unavailable"
+>
+  <td rowspan="2">По свойствам</td>
+  <td>Вправо</td>
+  <td rowspan="2"></td>
+
+  <td class="hotkeys-disabled-cell">
+    недоступно
+  </td>
+</tr>
+
+<tr
+  data-selection-view="schema"
+  class="hotkeys-view-unavailable"
+>
+  <td>Влево</td>
+
+  <td class="hotkeys-disabled-cell">
+    недоступно
+  </td>
+</tr>
+
+<tr data-selection-view="schema">
+  <td rowspan="2">По уровню</td>
+  <td>Вверх</td>
+
+  <td rowspan="2">
+    Переход к предыдущему/следующему объекту того же уровня
+  </td>
+
+  <td
+    data-action="levelNavUp"
+    data-fixed-key="ArrowUp"
+  ></td>
+</tr>
+
+<tr data-selection-view="schema">
+  <td>Вниз</td>
+
+  <td
+    data-action="levelNavDown"
+    data-fixed-key="ArrowDown"
+  ></td>
+</tr>
+
+<tr data-selection-view="schema">
+  <td rowspan="2">По ветке</td>
+  <td>Влево</td>
+
+  <td rowspan="2">
+    Переход к родителю / первому ребёнку в текущей ветке
+  </td>
+
+  <td
+    data-action="branchNavLeft"
+    data-fixed-key="ArrowLeft"
+  ></td>
+</tr>
+
+<tr data-selection-view="schema">
+  <td>Вправо</td>
+
+  <td
+    data-action="branchNavRight"
+    data-fixed-key="ArrowRight"
+  ></td>
+</tr>
+
+<!-- ======================================================
+     ВЫБОР — ВЕРТИКАЛЬНАЯ ИЕРАРХИЯ /
+     ВЕРТИКАЛЬНЫЙ АЙСИКЛ
+     ====================================================== -->
+
+<tr data-selection-view="vertical" hidden>
+  <td rowspan="8">Выбор</td>
+
+  <td rowspan="2">По списку</td>
+  <td>Вверх</td>
+  <td rowspan="2"></td>
+
+  <td
+    data-action="verticalListUp"
+    data-fixed-key="ArrowUp"
+  ></td>
+
+  <td
+    rowspan="8"
+    data-action="verticalNavClick"
+  >
+    Click
+  </td>
+
+  <td
+    rowspan="8"
+    style="color: gray;"
+  >
+    нет, не нужно
+  </td>
+</tr>
+
+<tr data-selection-view="vertical" hidden>
+  <td>Вниз</td>
+
+  <td
+    data-action="verticalListDown"
+    data-fixed-key="ArrowDown"
+  ></td>
+</tr>
+
+<tr
+  data-selection-view="vertical"
+  class="hotkeys-view-unavailable"
+  hidden
+>
+  <td rowspan="2">По свойствам</td>
+  <td>Вправо</td>
+  <td rowspan="2"></td>
+
+  <td class="hotkeys-disabled-cell">
+    недоступно
+  </td>
+</tr>
+
+<tr
+  data-selection-view="vertical"
+  class="hotkeys-view-unavailable"
+  hidden
+>
+  <td>Влево</td>
+
+  <td class="hotkeys-disabled-cell">
+    недоступно
+  </td>
+</tr>
+
+<tr data-selection-view="vertical" hidden>
+  <td rowspan="2">По уровню</td>
+  <td>Влево</td>
+
+  <td rowspan="2">
+    Переход к предыдущему/следующему
+    объекту того же уровня
+  </td>
+
+  <td
+    data-action="verticalLevelLeft"
+    data-fixed-key="ArrowLeft"
+  ></td>
+</tr>
+
+<tr data-selection-view="vertical" hidden>
+  <td>Вправо</td>
+
+  <td
+    data-action="verticalLevelRight"
+    data-fixed-key="ArrowRight"
+  ></td>
+</tr>
+
+<tr data-selection-view="vertical" hidden>
+  <td rowspan="2">По ветке</td>
+  <td>Вверх</td>
+
+  <td rowspan="2">
+    Переход к родителю / первому ребёнку
+    в текущей ветке
+  </td>
+
+  <td
+    data-action="verticalBranchUp"
+    data-fixed-key="ArrowUp"
+  ></td>
+</tr>
+
+<tr data-selection-view="vertical" hidden>
+  <td>Вниз</td>
+
+  <td
+    data-action="verticalBranchDown"
+    data-fixed-key="ArrowDown"
+  ></td>
+</tr>
+
+
+<!-- ======================================================
+     ВЫБОР — ТАБЛИЦА
+     ====================================================== -->
+
+<tr data-selection-view="table" hidden>
+  <td rowspan="8">Выбор</td>
+
+  <td rowspan="2">По списку</td>
+  <td>Вверх</td>
+  <td rowspan="2"></td>
+
+  <td
+    data-action="tableListUp"
+    data-fixed-key="ArrowUp"
+  ></td>
+
+  <td rowspan="8" data-action="tableNavClick">
+    Click
+  </td>
+
+  <td rowspan="8" style="color: gray;">
+    нет, не нужно
+  </td>
+</tr>
+
+<tr data-selection-view="table" hidden>
+  <td>Вниз</td>
+
+  <td
+    data-action="tableListDown"
+    data-fixed-key="ArrowDown"
+  ></td>
+</tr>
+
+<!-- По свойствам — доступно только в таблице -->
+
+<tr data-selection-view="table" hidden>
+  <td rowspan="2">По свойствам</td>
+  <td>Вправо</td>
+  <td rowspan="2"></td>
+
+  <td
+    data-action="tablePropertyRight"
+    data-fixed-key="ArrowRight"
+  ></td>
+</tr>
+
+<tr data-selection-view="table" hidden>
+  <td>Влево</td>
+
+  <td
+    data-action="tablePropertyLeft"
+    data-fixed-key="ArrowLeft"
+  ></td>
+</tr>
+
+<!-- По уровню — недоступно в таблице -->
+
+<tr
+  data-selection-view="table"
+  class="hotkeys-view-unavailable"
+  hidden
+>
+  <td rowspan="2">По уровню</td>
+  <td>Вверх</td>
+
+  <td rowspan="2">
+    Недоступно в табличном отображении
+  </td>
+
+  <td class="hotkeys-disabled-cell">
+    недоступно
+  </td>
+</tr>
+
+<tr
+  data-selection-view="table"
+  class="hotkeys-view-unavailable"
+  hidden
+>
+  <td>Вниз</td>
+
+  <td class="hotkeys-disabled-cell">
+    недоступно
+  </td>
+</tr>
+
+<!-- По ветке — недоступно в таблице -->
+
+<tr
+  data-selection-view="table"
+  class="hotkeys-view-unavailable"
+  hidden
+>
+  <td rowspan="2">По ветке</td>
+  <td>Влево</td>
+
+  <td rowspan="2">
+    Недоступно в табличном отображении
+  </td>
+
+  <td class="hotkeys-disabled-cell">
+    недоступно
+  </td>
+</tr>
+
+<tr
+  data-selection-view="table"
+  class="hotkeys-view-unavailable"
+  hidden
+>
+  <td>Вправо</td>
+
+  <td class="hotkeys-disabled-cell">
+    недоступно
+  </td>
+</tr>
+
+              <!-- Мультивыбор -->
+              <tr>
+                
+                <td rowspan="7">Мультивыбор</td>
+                <td rowspan="2">По дереву</td>
+                <td>Вверх</td>
+                <td rowspan="2"></td>
+                <td data-action="deepUp" data-fixed-key="ArrowUp"></td>
+                <td rowspan="2" data-action="deepClick">Primary+Click</td>
+                <td rowspan="7" style="color: gray;">нет, не нужно</td>
+              </tr>
+              <tr>
+                <td>Вниз</td><td data-action="deepDown" data-fixed-key="ArrowDown"></td>
+              </tr>
+
+              <tr>
+                <td rowspan="2">По уровню</td>
+                <td>Вверх</td>
+                <td rowspan="2"></td>
+                <td data-action="rangeUp" data-fixed-key="ArrowUp"></td>
+                <td rowspan="2" data-action="rangeClick">Primary+Alt+Shift+Click</td>
+                
+              </tr>
+              <tr>
+                <td>Вниз</td><td data-action="rangeDown" data-fixed-key="ArrowDown"></td>
+              </tr>
+  
+              <tr>
+                <td rowspan="2">По ветке</td>
+                <td>Влево</td>
+                <td rowspan="2">Расширение выделения к родителю / первому ребёнку по одной branch-цепочке</td>
+                <td data-action="branchRangeLeft" data-fixed-key="ArrowLeft"></td>
+                <td rowspan="2">-</td>
+                
+              </tr>
+              <tr>
+                <td>Вправо</td><td data-action="branchRangeRight" data-fixed-key="ArrowRight"></td>
+              </tr>
+            
+              <tr>
+                <td colspan="2">Выделить всё</td>
+                <td></td>
+                <td data-action="selectAll"></td>
+                <td style="color: gray;">нет, не нужно</td>
+              </tr>
+
+              <!-- Перемещение -->
+
+              <tr>
+                
+                <td rowspan="9">Перемещение</td>
+                <td rowspan="2">По дереву</td>
+                <td>Вверх</td>
+                <td></td>
+                <td data-action="moveUp" data-fixed-key="ArrowUp"></td>
+                <td rowspan="6" style="background-color: #f3f3f3;">Зажать ЛКМ > Переместить</td>
+                <td rowspan="6" style="color: gray;">нет, не нужно</td>
+              </tr>
+
+              <tr>
+                
+                <td>Вниз</td>
+                <td></td>
+                <td data-action="moveDown" data-fixed-key="ArrowDown"></td>
+              </tr>
+
+              <tr>
+                <td rowspan="2">По уровню</td>
+                <td>Вверх</td>
+                <td rowspan="2">Перемещение к предыдущему/следующему объекту того же уровня</td>
+                <td data-action="levelMoveUp" data-fixed-key="ArrowUp"></td>
+              </tr>
+              <tr>
+                <td>Вниз</td><td data-action="levelMoveDown" data-fixed-key="ArrowDown"></td>
+              </tr>
+  
+              <tr>
+                <td rowspan="2">По ветке</td>
+                <td>Влево</td>
+                <td rowspan="2">Перемещение к родителю / вложение в первого ребёнка текущей ветки</td>
+                <td data-action="branchMoveLeft" data-fixed-key="ArrowLeft"></td>
+              </tr>
+              <tr>
+                <td>Вправо</td><td data-action="branchMoveRight" data-fixed-key="ArrowRight"></td>
+              </tr>
+
+              <tr>
+                <td style="background-color: #FAEEC6;" colspan="2">Открыть карточку объекта</td>
+                <td style="background-color: #FAEEC6;"></td>
+                <td style="background-color: #FAEEC6;">Space</td>
+                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
+                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
+              </tr>
+
+              <tr>
+                <td colspan="2">Проволится в объект</td>
+                <td></td>
+                <td data-action="focusIntoObject">Shift+[</td>
+                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
+                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
+              </tr>
+
+              <tr>
+                <td style="background-color: #FAEEC6;" colspan="2">Наверх</td>
+                <td style="background-color: #FAEEC6;"></td>
+                <td style="background-color: #FAEEC6;" data-action="focusOutObject">Shift+]</td>
+                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
+                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
+              </tr>
+
+</tbody>
+
+</table>
+
+</section>
+
+  <section class="hotkeys-section">
+
+<div class="hotkeys-section-title">
+  Общее
+</div>
+
+<table class="hotkeys hotkeys-aligned">
+
+  <colgroup>
+  <col class="hotkeys-col-section" />
+  <col class="hotkeys-col-subsection" />
+  <col class="hotkeys-col-function" />
+  <col class="hotkeys-col-description" />
+  <col class="hotkeys-col-keyboard" />
+  <col class="hotkeys-col-mouse" />
+  <col class="hotkeys-col-interface" />
+</colgroup>
+
+<thead>
+<tr>
+  <th></th>
+<th colspan="2">Функция</th>
+<th>Описание</th>
+<th>Клавиатура</th>
+<th>Мышь</th>
+<th>Интерфейс</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td rowspan="3">Общее</td>
               <td colspan="2">Отменить действие</td>
               <td></td>
               <td data-action="undo">Ctrl/Cmd+Z</td>
@@ -304,10 +926,47 @@
               <td style="color: gray;">нет, не нужно</td>
               <td> Тумблер режимов </td>
             </tr>
+</tbody>
+</table>
+
+</section>
+
+
+
+  <section class="hotkeys-section">
+
+<div class="hotkeys-section-title">
+  Работа с объектами
+</div>
+
+<table class="hotkeys hotkeys-aligned">
+
+  <colgroup>
+  <col class="hotkeys-col-section" />
+  <col class="hotkeys-col-subsection" />
+  <col class="hotkeys-col-function" />
+  <col class="hotkeys-col-description" />
+  <col class="hotkeys-col-keyboard" />
+  <col class="hotkeys-col-mouse" />
+  <col class="hotkeys-col-interface" />
+</colgroup>
+
+<thead>
+<tr>
+
+<th></th>
+<th colspan="2">Функция</th>
+<th>Описание</th>
+<th>Клавиатура</th>
+<th>Мышь</th>
+<th>Интерфейс</th>
+</tr>
+</thead>
+
+<tbody>
 
             <!-- Работа с объектами -->
             <tr>
-              <td rowspan="38">Работа с объектами</td>
               <td rowspan="11">Редактирование</td>
 
               <td colspan="2">Создать на следующей ветке</td>
@@ -344,7 +1003,7 @@
             </tr>
 
             <tr>
-              <td colspan="2" style="background-color: red;">Редактировать название/взаимодействие с ячейкой</td>
+              <td colspan="2">Редактировать название/взаимодействие с ячейкой</td>
               <td></td>
               <td data-action="rename">ё</td>
               <td data-action="renameClick">DblClick</td>
@@ -399,160 +1058,6 @@
               <td style="background-color: #FAEEC6;">нет, добавить позже</td>
               <td>[х]</td>
             </tr>
-
-            <!-- Навигация -->
-
-              <tr>
-                
-                <td rowspan="8">Выбор</td>
-                <td rowspan="4">По дереву</td>
-                <td style="background-color: red">Вверх хоткей и для таблицы</td>
-                <td rowspan="4"></td>
-                <td data-action="navUp">ArrowUp</td>
-                <td rowspan="8" data-action="navClick">Click</td>
-                <td rowspan="8" style="color: gray;">нет, не нужно</td>
-              </tr>
-              <tr>
-                <td style="background-color: red">Вниз хотей и для табицыы</td><td data-action="navDown">ArrowDown</td>
-              </tr>
-              <tr>
-                <td style="background-color: red">Вправо добавила для таблицы</td><td data-action="navLeft">ArrowLeft</td>
-              </tr>
-              <tr>
-                <td style="background-color: red">Влево добавила для таблицы</td><td data-action="navRight">ArrowRight</td>
-              </tr>
-
-              <tr>
-                <td rowspan="2">По уровню</td>
-                <td>Вверх</td>
-                <td rowspan="2">Переход к предыдущему/следующему объекту того же уровня</td>
-                <td data-action="levelNavUp"></td>
-                
-              </tr>
-              <tr>
-                <td>Вниз</td><td data-action="levelNavDown"></td>
-              </tr>
-  
-              <tr>
-                <td rowspan="2">По ветке</td>
-                <td>Влево</td>
-                <td rowspan="2">Переход к родителю / первому ребёнку в текущей ветке</td>
-                <td data-action="branchNavLeft"></td>
-              </tr>
-              <tr>
-                <td>Вправо</td><td data-action="branchNavRight"></td>
-              </tr>
-
-              <!-- Мультивыбор -->
-              <tr>
-                
-                <td rowspan="7">Мультивыбор</td>
-                <td rowspan="2">По дереву</td>
-                <td>Вверх</td>
-                <td rowspan="2"></td>
-                <td data-action="deepUp">Ctrl/Cmd+ArrowUp</td>
-                <td rowspan="2" data-action="deepClick">Primary+Click</td>
-                <td rowspan="7" style="color: gray;">нет, не нужно</td>
-              </tr>
-              <tr>
-                <td>Вниз</td><td data-action="deepDown">Shift+Ctrl/Cmd+ArrowDown</td>
-              </tr>
-
-              <tr>
-                <td rowspan="2">По уровню</td>
-                <td>Вверх</td>
-                <td rowspan="2"></td>
-                <td data-action="rangeUp">Shift+Alt+Ctrl/Cmd+ArrowUp</td>
-                <td rowspan="2" data-action="rangeClick">Primary+Alt+Shift+Click</td>
-                
-              </tr>
-              <tr>
-                <td>Вниз</td><td data-action="rangeDown">Shift+Alt+Ctrl/Cmd+ArrowDown</td>
-              </tr>
-  
-              <tr>
-                <td rowspan="2">По ветке</td>
-                <td>Влево</td>
-                <td rowspan="2">Расширение выделения к родителю / первому ребёнку по одной branch-цепочке</td>
-                <td data-action="branchRangeLeft"></td>
-                <td rowspan="2">-</td>
-                
-              </tr>
-              <tr>
-                <td>Вправо</td><td data-action="branchRangeRight"></td>
-              </tr>
-            
-              <tr>
-                <td colspan="2">Выделить всё</td>
-                <td></td>
-                <td data-action="selectAll"></td>
-                <td style="color: gray;">нет, не нужно</td>
-              </tr>
-
-              <!-- Перемещение -->
-
-              <tr>
-                
-                <td rowspan="9">Перемещение</td>
-                <td rowspan="2">По дереву</td>
-                <td>Вверх</td>
-                <td></td>
-                <td data-action="moveUp">Shift+ArrowUp</td>
-                <td rowspan="6" style="background-color: #f3f3f3;">Зажать ЛКМ > Переместить</td>
-                <td rowspan="6" style="color: gray;">нет, не нужно</td>
-              </tr>
-
-              <tr>
-                
-                <td>Вниз</td>
-                <td></td>
-                <td data-action="moveDown">Shift+ArrowDown</td>
-              </tr>
-
-              <tr>
-                <td rowspan="2">По уровню</td>
-                <td>Вверх</td>
-                <td rowspan="2">Перемещение к предыдущему/следующему объекту того же уровня</td>
-                <td data-action="levelMoveUp"></td>
-              </tr>
-              <tr>
-                <td>Вниз</td><td data-action="levelMoveDown"></td>
-              </tr>
-  
-              <tr>
-                <td rowspan="2">По ветке</td>
-                <td>Влево</td>
-                <td rowspan="2">Перемещение к родителю / вложение в первого ребёнка текущей ветки</td>
-                <td data-action="branchMoveLeft"></td>
-              </tr>
-              <tr>
-                <td>Вправо</td><td data-action="branchMoveRight"></td>
-              </tr>
-
-              <tr>
-                <td style="background-color: #FAEEC6;" colspan="2">Открыть карточку объекта</td>
-                <td style="background-color: #FAEEC6;"></td>
-                <td style="background-color: #FAEEC6;">Space</td>
-                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
-                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
-              </tr>
-
-              <tr>
-                <td colspan="2">Проволится в объект</td>
-                <td></td>
-                <td data-action="focusIntoObject">Shift+[</td>
-                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
-                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
-              </tr>
-
-              <tr>
-                <td style="background-color: #FAEEC6;" colspan="2">Наверх</td>
-                <td style="background-color: #FAEEC6;"></td>
-                <td style="background-color: #FAEEC6;" data-action="focusOutObject">Shift+]</td>
-                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
-                <td style="background-color: #FAEEC6;">нет, добавить позже</td>
-              </tr>
-
               <tr>
                 <td rowspan="3">Свойства</td>
                 <td style="background-color: #FAEEC6;" colspan="2">Добавить свойство</td>
@@ -578,10 +1083,48 @@
                 <td style="background-color: #FAEEC6;">нет, добавить позже</td>
               </tr>
 
+</tbody>
+</table>
+
+</section>
+
+
+<section class="hotkeys-section">
+
+<div class="hotkeys-section-title">
+Работа с текстом
+</div>
+
+<table class="hotkeys hotkeys-aligned">
+
+  <colgroup>
+  <col class="hotkeys-col-section" />
+  <col class="hotkeys-col-subsection" />
+  <col class="hotkeys-col-function" />
+  <col class="hotkeys-col-description" />
+  <col class="hotkeys-col-keyboard" />
+  <col class="hotkeys-col-mouse" />
+  <col class="hotkeys-col-interface" />
+</colgroup>
+
+<thead>
+<tr>
+
+<th></th>
+<th colspan="2">Функция</th>
+<th>Описание</th>
+<th>Клавиатура</th>
+<th>Мышь</th>
+<th>Интерфейс</th>
+</tr>
+</thead>
+
+<tbody>
+
               <!-- Работа с текстом -->
 
               <tr>
-                <td rowspan="26">Работа с текстом</td>
+                
                 <td rowspan="7">Содержание</td>
                 <td colspan="2">Перенос строки</td>
                 <td>Во время редактирования названия и подписи </td>
@@ -722,6 +1265,16 @@
           </tbody>
         </table>
 
+</tbody>
+</table>
+
+</section>
+
+</div> <!-- hotkeys-panel-scroll -->
+
+
+<div class="hotkeys-panel-footer">
+
         <div class="hkbar">
           <span class="hk-btns">
             <!-- class="hkEditBtn"  class="hkSaveBtn"  class="hkDiscardBtn"  class="hotkeysResetBtn" -->
@@ -737,13 +1290,16 @@
         </div>
       
         <div class="panel-note">
-          <b>Подсветка:</b> выбранные элементы отмечаются голубым.
+</div>
+
+</div>
+          
         </div>
       </aside>
       </div>
     
   </div>
-
+  <script src="hotkeys_view_group.js"></script>
   <script src="hotkeys_config.js"></script>
 <script src="ui_resources.js"></script>
 <script src="app_core.js"></script>
@@ -756,6 +1312,8 @@
   <script src="hotkeys_editor.js"></script>
   
   <script src="hotkeys_ui.js"></script> 
+  <script src="hotkeys_navigation_views.js"></script>
+  <script src="vertical_nav.js"></script>
   <script src="hotkey_hold_repeat.js"></script>
   <script src="multi_select_patch.js"></script>
   <script src="multi_select_deep.js"></script>
@@ -773,7 +1331,11 @@
   <script src="level_nav.js"></script>
   <script src="branch_nav.js"></script>
   <script src="level_move.js"></script>
+  <script src="ui_toggle.js"></script>
+<script src="hotkeys_panel_mode.js"></script>
   <script src="panel_toggle.js"></script>
+<script src="hotkeys_panel_controller.js"></script>
+
   <script src="branch_move.js"></script>
   <script src="multi_select_branch.js"></script>
   <script src="mark_property.js"></script>
@@ -784,6 +1346,5 @@
   <script src="hide_nodes.js"></script>
   <script src="hide_levels.js"></script>
   <script src="spa_router.js"></script>
-  <script src="table_hotkeys_table_mode_hint.js">  </script>
 </body>
 </html>

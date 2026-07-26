@@ -13,17 +13,21 @@
   let pendingMouseAssignEvent = null;
 
   // Все действия, которые назначаются мышью
-  const MOUSE_ACTIONS = new Set([
-    "rangeClick",
-    "deepClick",
-    "navClick",
-    "renameClick",
-    "addSiblingClick",
-    "addChildClick",
-    "deleteClick",
-    "undoClick",
-    "redoClick"
-  ]);
+const MOUSE_ACTIONS = new Set([
+  "rangeClick",
+  "deepClick",
+
+  "navClick",
+  "verticalNavClick",
+  "tableNavClick",
+
+  "renameClick",
+  "addSiblingClick",
+  "addChildClick",
+  "deleteClick",
+  "undoClick",
+  "redoClick",
+]);
 
   const SINGLE_CLICK_ASSIGN_DELAY = 240;
 
@@ -260,23 +264,31 @@ editingCell.dataset.prevText = prettyHotkey(prevValue);
 
 editingCell.querySelector(".hk-clear")?.remove();
 
-      const action = editingCell.dataset.action;
-      const isMouseAction = MOUSE_ACTIONS.has(action);
+const action = editingCell.dataset.action;
+const isMouseAction = MOUSE_ACTIONS.has(action);
+const fixedKey = editingCell.dataset.fixedKey || "";
 
-      editingCell.classList.add("editing");
+editingCell.classList.add("editing");
 
-      if (isMouseAction) {
-        editingCell.classList.add("editing-click");
-        setCellTextIfChanged(
-          editingCell,
-          "Кликните или сделайте двойной клик мышью… (Esc — отмена)"
-        );
-      } else {
-        setCellTextIfChanged(
-          editingCell,
-          "Нажмите клавишу… (Esc — отмена)"
-        );
-      }
+if (isMouseAction) {
+  editingCell.classList.add("editing-click");
+
+  setCellTextIfChanged(
+    editingCell,
+    "Кликните или сделайте двойной клик мышью… (Esc — отмена)"
+  );
+} else if (fixedKey) {
+  setCellTextIfChanged(
+    editingCell,
+    `Нажмите сочетание с ${prettyHotkey(fixedKey)}… (Esc — отмена)`
+  );
+} else {
+  setCellTextIfChanged(
+    editingCell,
+    "Нажмите клавишу… (Esc — отмена)"
+  );
+}
+
     });
 
     // KeyDown: сохраняем сразу (модификаторы + 1 клавиша)
@@ -315,13 +327,42 @@ editingCell.querySelector(".hk-clear")?.remove();
 
         if (e.repeat) return;
 
-        const combo = comboFromKeyEvent(e);
-        if (!combo) {
-          setCellTextIfChanged(editingCell, "Нажмите клавишу (не модификатор)… (Esc — отмена)");
-          return;
-        }
+const combo = comboFromKeyEvent(e);
 
-        window.hotkeys?.set?.(action, combo);
+if (!combo) {
+  const fixedKey = editingCell.dataset.fixedKey || "";
+
+  if (fixedKey) {
+    setCellTextIfChanged(
+      editingCell,
+      `Нажмите сочетание с ${prettyHotkey(fixedKey)}… (Esc — отмена)`
+    );
+  } else {
+    setCellTextIfChanged(
+      editingCell,
+      "Нажмите основную клавишу… (Esc — отмена)"
+    );
+  }
+
+  return;
+}
+
+const fixedKey = editingCell.dataset.fixedKey || "";
+
+if (fixedKey) {
+  const pressedBaseKey = normalizeBaseKeyFromEvent(e);
+
+  if (pressedBaseKey !== fixedKey) {
+    setCellTextIfChanged(
+      editingCell,
+      `Используйте только ${prettyHotkey(fixedKey)} с модификаторами… (Esc — отмена)`
+    );
+    return;
+  }
+}
+
+window.hotkeys?.set?.(action, combo);
+
         const normalized = window.hotkeys?.get?.(action) || combo;
         setCellTextIfChanged(editingCell, prettyHotkey(normalized));
 

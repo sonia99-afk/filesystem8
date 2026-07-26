@@ -21,7 +21,7 @@
   const DEFAULTS = {
     // Добавления
     addSibling: "Shift+Enter",
-    addChild: "Enter",
+    addChild: "Primary+Enter",
 
     addSiblingClick: "",
     addChildClick: "",
@@ -66,8 +66,37 @@
     deepDown: "Shift+Alt+ArrowDown",
     deepClick: "Alt+Shift+Click",
 
+
+        // =====================================================
+    // Выбор по режимам отображения
+    // Пока используется только в панели хоткеев.
+    // К реальному управлению приложением подключим позже.
+    // =====================================================
+
+    // Вертикальная иерархия и вертикальный айсикл
+verticalListUp: "Alt+ArrowUp",
+verticalListDown: "Alt+ArrowDown",
+
+verticalLevelLeft: "ArrowLeft",
+verticalLevelRight: "ArrowRight",
+
+verticalBranchUp: "ArrowUp",
+verticalBranchDown: "ArrowDown",
+
+verticalNavClick: "Click",
+
+    // Таблица
+    tableListUp: "ArrowUp",
+    tableListDown: "ArrowDown",
+
+    tablePropertyRight: "ArrowRight",
+    tablePropertyLeft: "ArrowLeft",
+
+    tableNavClick: "Click",
+
+
     // Прочее
-    rename: "Primary+Enter",
+    rename: "Enter",
     renameClick: "DblClick",
     delete: "Primary+Backspace",
     deleteClick: "",
@@ -268,29 +297,86 @@
     return { ...current };
   }
 
-  function findConflicts() {
-    const map = new Map();
-    const conflicts = new Set();
+const MAIN_ONLY_ACTIONS = new Set([
+  "navUp",
+  "navDown",
+  "navLeft",
+  "navRight",
+  "navClick",
 
-    
+  "levelNavUp",
+  "levelNavDown",
 
-    for (const [action, comboRaw] of Object.entries(current)) {
-      const combo = normalizeCombo(comboRaw);
-      const arr = map.get(combo) || [];
+  "branchNavLeft",
+  "branchNavRight",
+]);
 
-      // пустой хоткей = не назначен, это не конфликт
-  if (!combo) continue;
+function getConflictScope(action) {
+  const name = String(action || "");
 
-      arr.push(action);
-      map.set(combo, arr);
-    }
-
-    for (const actions of map.values()) {
-      if (actions.length > 1) actions.forEach((a) => conflicts.add(a));
-    }
-
-    return conflicts;
+  if (name.startsWith("table")) {
+    return "table";
   }
+
+  if (name.startsWith("vertical")) {
+    return "vertical";
+  }
+
+  if (
+    name.startsWith("schema") ||
+    MAIN_ONLY_ACTIONS.has(name)
+  ) {
+    return "main";
+  }
+
+  /*
+    Мультивыбор, перемещение, редактирование
+    и остальные действия доступны
+    в нескольких группах.
+  */
+  return "global";
+}
+
+function actionsCanConflict(actionA, actionB) {
+  const scopeA = getConflictScope(actionA);
+  const scopeB = getConflictScope(actionB);
+
+  if (
+    scopeA === "global" ||
+    scopeB === "global"
+  ) {
+    return true;
+  }
+
+  return scopeA === scopeB;
+}
+
+function findConflicts() {
+  const conflicts = new Set();
+
+  const entries = Object.entries(current)
+    .map(([action, comboRaw]) => [
+      action,
+      normalizeCombo(comboRaw),
+    ])
+    .filter(([, combo]) => !!combo);
+
+  for (let i = 0; i < entries.length; i += 1) {
+    const [actionA, comboA] = entries[i];
+
+    for (let j = i + 1; j < entries.length; j += 1) {
+      const [actionB, comboB] = entries[j];
+
+      if (comboA !== comboB) continue;
+      if (!actionsCanConflict(actionA, actionB)) continue;
+
+      conflicts.add(actionA);
+      conflicts.add(actionB);
+    }
+  }
+
+  return conflicts;
+}
 
   // Expose a tiny runtime helper so UI can show Ctrl/Cmd.
   function getPlatformInfo() {

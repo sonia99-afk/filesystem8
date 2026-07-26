@@ -4,7 +4,7 @@
 
    .panel-title {
     font-weight: 700;
-    margin-bottom: 10px;
+ 
   }
   
   .panel-note {
@@ -17,7 +17,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
-    margin-bottom: 10px;
+
     background: #fff;
   }
   
@@ -32,10 +32,7 @@
   .hotkeys th {
     text-align: left;
   }
-  
-  .hotkeys td:nth-child(4) {
-    min-width: 80px;
-  }
+
   
   kbd {
     display: inline-block;
@@ -213,3 +210,98 @@ td.editing {
     margin-right: 10px;
     margin-left: 92px;
   }
+
+  /* =========================
+   Единая сетка таблиц хоткеев
+   ========================= */
+
+.hotkeys-panel-scroll {
+  /*
+    Ширина всех секций определяется самой широкой таблицей.
+    Горизонтальная прокрутка принадлежит общему контейнеру.
+  */
+  overflow-x: auto;
+}
+
+.hotkeys-section {
+  /*
+    Одинаковая ширина всех секций и их заголовков.
+  */
+  width: 850px;
+  min-width: 850px;
+  box-sizing: border-box;
+}
+
+.hotkeys-aligned {
+  width: 850px;
+  min-width: 850px;
+
+  table-layout: fixed;
+  border-collapse: collapse;
+  box-sizing: border-box;
+}
+
+/* 1. Основной раздел:
+   Выбор, Мультивыбор, Редактирование и т. д. */
+.hotkeys-aligned .hotkeys-col-section {
+  width: 110px;
+}
+
+/* 2. Подраздел:
+   По дереву, По уровню, Фона, Текста и т. д. */
+.hotkeys-aligned .hotkeys-col-subsection {
+  width: 105px;
+}
+
+/* 3. Название функции */
+.hotkeys-aligned .hotkeys-col-function {
+  width: 120px;
+}
+
+/* 4. Описание */
+.hotkeys-aligned .hotkeys-col-description {
+  width: 120px;
+}
+
+/* 5. Клавиатура */
+.hotkeys-aligned .hotkeys-col-keyboard {
+  width: 165px;
+}
+
+/* 6. Мышь */
+.hotkeys-aligned .hotkeys-col-mouse {
+  width: 160px;
+}
+
+/* 7. Интерфейс */
+.hotkeys-aligned .hotkeys-col-interface {
+  width: 130px;
+}
+
+.hotkeys-aligned th,
+.hotkeys-aligned td {
+  box-sizing: border-box;
+
+  /*
+    Длинные названия не растягивают отдельную таблицу.
+  */
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.hotkeys-navigation-controls {
+  text-align: right;
+}
+
+
+.hotkeys-view-unavailable td {
+  background: #f2f2f2;
+  color: #999;
+}
+
+.hotkeys-disabled-cell {
+  background: #f2f2f2;
+  color: #999;
+  cursor: default;
+  user-select: none;
+}

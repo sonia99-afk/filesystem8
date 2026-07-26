@@ -435,65 +435,66 @@ function moveCell(currentCell, rowDelta, colDelta, options = {}) {
     return !!window.isHotkey?.(e, "rename");
   }
 
-  function handleCellNavHotkey(e, td) {
-    if (window.isHotkey?.(e, "navUp")) {
-      stopTableCellHotkey(e);
-      moveCell(td, -1, 0);
-      return true;
-    }
-
-    if (window.isHotkey?.(e, "navDown")) {
-      stopTableCellHotkey(e);
-      moveCell(td, 1, 0);
-      return true;
-    }
-
-    if (window.isHotkey?.(e, "navLeft")) {
-      stopTableCellHotkey(e);
-      moveCell(td, 0, -1);
-      return true;
-    }
-
-    if (window.isHotkey?.(e, "navRight")) {
-      stopTableCellHotkey(e);
-      moveCell(td, 0, 1);
-      return true;
-    }
-
-    return false;
+function handleCellNavHotkey(e, td) {
+  // По списку — перемещение между строками
+  if (window.isHotkey?.(e, "tableListUp")) {
+    stopTableCellHotkey(e);
+    moveCell(td, -1, 0);
+    return true;
   }
 
-  function handleCellKeydown(e) {
-    if (!isTableViewActive()) return;
-
-    const td = e.target.closest?.(`td.${CELL_CLASS}`);
-    if (!td) return;
-
-    /*
-      Browser-repeat глушим.
-      Повтор зажатых хоткеев делает hotkey_hold_repeat.js
-      через публичные методы window.tableCellNav.moveUp/Down/Left/Right.
-    */
-    if (e.repeat) {
-      stopTableCellHotkey(e);
-      return;
-    }
-
-    if (handleCellNavHotkey(e, td)) {
-      return;
-    }
-
-    if (isCellActivateHotkey(e)) {
-      stopTableCellHotkey(e);
-      activateCell(td);
-      return;
-    }
-
-    if (e.key === "Escape") {
-      e.preventDefault();
-      td.blur();
-    }
+  if (window.isHotkey?.(e, "tableListDown")) {
+    stopTableCellHotkey(e);
+    moveCell(td, 1, 0);
+    return true;
   }
+
+  // По свойствам — перемещение между колонками
+  if (window.isHotkey?.(e, "tablePropertyLeft")) {
+    stopTableCellHotkey(e);
+    moveCell(td, 0, -1);
+    return true;
+  }
+
+  if (window.isHotkey?.(e, "tablePropertyRight")) {
+    stopTableCellHotkey(e);
+    moveCell(td, 0, 1);
+    return true;
+  }
+
+  return false;
+}
+
+
+function handleCellKeydown(e) {
+  if (!isTableViewActive()) return;
+
+  const td = e.target.closest?.(`td.${CELL_CLASS}`);
+  if (!td) return;
+
+  /*
+    Вся табличная навигация проходит через одно место.
+  */
+  if (handleCellNavHotkey(e, td)) {
+    return;
+  }
+
+  /*
+    Активация и редактирование ячейки используют
+    назначаемое действие rename. F2 остаётся запасным.
+  */
+  if (isCellActivateHotkey(e)) {
+    stopTableCellHotkey(e);
+    startEditCell(td);
+    return;
+  }
+
+  if (e.key === "Escape") {
+    e.preventDefault();
+    e.stopPropagation();
+    td.blur();
+  }
+}
 
   function bindCell(td, rowId, rowIndex, colIndex) {
     td.classList.add(CELL_CLASS);

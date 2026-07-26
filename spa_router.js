@@ -60,6 +60,7 @@
           "table/table_drag_drop.js",
           "table/table_multi_select.js",
           "table/table_autoscroll.js"
+          
         ],
       },
 

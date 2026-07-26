@@ -1,0 +1,39 @@
+/* hotkeys_panel_mode.css
+   Расположение переключателя режима
+   панели хоткеев внизу левого бара.
+*/
+
+.leftbar {
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+  Список проектов занимает доступное место,
+  а footer остаётся внизу.
+*/
+.leftbar .projects-list {
+  flex: 0 1 auto;
+  min-height: 0;
+ 
+}
+
+.leftbar-footer {
+  flex: 0 0 auto;
+
+  margin-top: auto;
+  padding: 16px 0px 0px;
+}
+
+.hotkeys-panel-mode-control {
+  width: 100%;
+}
+
+/*
+  Пока классы режима ничего визуально
+  не меняют в правом баре.
+
+  Они уже готовы для следующего этапа:
+  body.hotkeys-panel-mode-sidebar
+  body.hotkeys-panel-mode-modal
+*/

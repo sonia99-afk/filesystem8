@@ -129,13 +129,18 @@
     });
   }
 
-  function init() {
-    if (document.__tableCellTabNavigationBound) return;
 
-    document.__tableCellTabNavigationBound = true;
+function init() {
+  if (document.__tableCellTabNavigationBound) return;
 
-    document.addEventListener("keydown", handleTableCellTabNavigation, true);
-  }
+  document.__tableCellTabNavigationBound = true;
+
+  document.addEventListener(
+    "keydown",
+    handleTableCellTabNavigation,
+    true
+  );
+}
 
   window.tableTabNavigation = {
     init,

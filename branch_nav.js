@@ -43,9 +43,31 @@
       return true;
     }
   
-    window.addEventListener(
-      "keydown",
-      (e) => {
+window.addEventListener(
+  "keydown",
+  (e) => {
+    if (
+      window.hotkeysViewGroup &&
+      !window.hotkeysViewGroup.isMain()
+    ) {
+      return;
+    }
+
+    if (
+      !window.hotkeysViewGroup &&
+      window.currentView ===
+        window.VIEW?.TABLE
+    ) {
+      return;
+    }
+
+    if (
+      window.hotkeysMode === "custom"
+    ) {
+      return;
+    }
+
+    if (isEditingNow()) return;
         if (window.hotkeysMode === "custom") return;
         if (isEditingNow()) return;
         if (typeof isHotkey !== "function") return;

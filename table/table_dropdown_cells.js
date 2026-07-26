@@ -19,14 +19,19 @@
     switch (value) {
       case "circle":
         return "●";
+
       case "diamond":
         return "◆";
+
       case "star":
         return "★";
+
       case "flag":
         return "⚑";
+
       case "spark":
         return "✦";
+
       default:
         return "";
     }
@@ -123,7 +128,10 @@
 
       const style = window.getComputedStyle(el);
 
-      return style.display !== "none" && style.visibility !== "hidden";
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden"
+      );
     });
   }
 
@@ -139,15 +147,18 @@
       .join(" ");
 
     const view = document.createElement("div");
+
     view.className = [
       "table-tag-compact-view",
       config.viewClass || "",
     ]
       .filter(Boolean)
       .join(" ");
+
     view.title = column.title || "";
 
     const editor = document.createElement("div");
+
     editor.className = [
       "table-tag-compact-editor",
       config.editorClass || "",
@@ -156,7 +167,9 @@
       .join(" ");
 
     const trigger = document.createElement("button");
+
     trigger.type = "button";
+
     trigger.className = [
       "table-tag-compact-trigger",
       config.triggerClass || "",
@@ -165,6 +178,7 @@
       .join(" ");
 
     const menu = document.createElement("div");
+
     menu.className = [
       "table-tag-compact-menu",
       config.menuClass || "",
@@ -179,6 +193,7 @@
 
     function getCellFocusableElements() {
       const cell = wrap.closest("td") || wrap;
+
       return getVisibleFocusableElements(cell);
     }
 
@@ -234,7 +249,9 @@
 
     function getViewText(value) {
       if (typeof config.formatView === "function") {
-        return String(config.formatView(value, node, column) || "");
+        return String(
+          config.formatView(value, node, column) || ""
+        );
       }
 
       if (!value) return "";
@@ -244,7 +261,9 @@
 
     function getTriggerText(value) {
       if (typeof config.formatTrigger === "function") {
-        return String(config.formatTrigger(value, node, column) || "");
+        return String(
+          config.formatTrigger(value, node, column) || ""
+        );
       }
 
       return getLabel(value) || config.emptyLabel || "нет";
@@ -257,7 +276,11 @@
       const triggerText = getTriggerText(value);
 
       view.textContent = viewText;
-      view.classList.toggle("is-empty", !viewText);
+
+      view.classList.toggle(
+        "is-empty",
+        !viewText
+      );
 
       trigger.textContent = triggerText;
     }
@@ -266,7 +289,9 @@
       requestAnimationFrame(() => {
         const td = wrap.closest("td");
 
-        if (!td || !document.body.contains(td)) return;
+        if (!td || !document.body.contains(td)) {
+          return;
+        }
 
         window.tableCellNav?.selectCell?.(td, {
           focus: true,
@@ -275,10 +300,41 @@
       });
     }
 
-    function focusMenuOption(delta = 0) {
-      const options = Array.from(
-        menu.querySelectorAll(".table-tag-compact-option")
+    function getMenuOptions() {
+      return Array.from(
+        menu.querySelectorAll(
+          ".table-tag-compact-option"
+        )
       );
+    }
+
+    /*
+      При открытии меню всегда ставим
+      фокус на первый пункт списка.
+
+      Текущее сохранённое значение
+      на начальную позицию не влияет.
+    */
+    function focusFirstMenuOption() {
+      const firstOption = getMenuOptions()[0];
+
+      if (!firstOption) return;
+
+      firstOption.focus({
+        preventScroll: true,
+      });
+    }
+
+    /*
+      Двигаем фокус относительно пункта,
+      который реально сфокусирован сейчас.
+
+      Если фокус по какой-либо причине
+      ещё не находится внутри меню,
+      начальной позицией считаем первый пункт.
+    */
+    function focusMenuOption(delta = 0) {
+      const options = getMenuOptions();
 
       if (!options.length) return;
 
@@ -286,18 +342,17 @@
       let index = options.indexOf(active);
 
       if (index < 0) {
-        const currentValue = getCurrentValue();
-
-        index = options.findIndex((button) => {
-          return button.dataset.value === currentValue;
-        });
+        index = 0;
+      } else {
+        index += delta;
       }
-
-      if (index < 0) index = 0;
 
       const nextIndex = Math.max(
         0,
-        Math.min(options.length - 1, index + delta)
+        Math.min(
+          options.length - 1,
+          index
+        )
       );
 
       options[nextIndex].focus({
@@ -308,13 +363,19 @@
     function closeMenu() {
       isMenuOpen = false;
       menu.hidden = true;
-      wrap.classList.remove("is-menu-open");
+
+      wrap.classList.remove(
+        "is-menu-open"
+      );
     }
 
     function closeEditor(options = {}) {
       closeMenu();
 
-      wrap.classList.remove("is-editing");
+      wrap.classList.remove(
+        "is-editing"
+      );
+
       syncView();
 
       if (options.restoreFocus !== false) {
@@ -342,7 +403,11 @@
       const oldValue = getCurrentValue();
 
       if (oldValue !== value) {
-        setTableProp(node, column.key, value);
+        setTableProp(
+          node,
+          column.key,
+          value
+        );
       }
 
       closeEditor();
@@ -361,12 +426,23 @@
         btn.className = "table-tag-compact-option";
         btn.dataset.value = option.value;
         btn.textContent = option.label;
-        btn.setAttribute("role", "option");
 
-        if (option.value === currentValue) {
-          btn.classList.add("is-current");
-          btn.setAttribute("aria-selected", "true");
-        }
+        btn.setAttribute(
+          "role",
+          "option"
+        );
+
+        /*
+          Текущее сохранённое значение
+          намеренно не получает:
+
+          - класс is-current;
+          - aria-selected="true".
+
+          Поэтому оно не подсвечивается
+          отдельным серым фоном и не влияет
+          на старт клавиатурной навигации.
+        */
 
         btn.addEventListener("mousedown", (e) => {
           e.preventDefault();
@@ -400,7 +476,10 @@
             return;
           }
 
-          if (isNativeDropdownActionKey(e) && !isDropdownActivateHotkey(e)) {
+          if (
+            isNativeDropdownActionKey(e) &&
+            !isDropdownActivateHotkey(e)
+          ) {
             stopDropdownActionKey(e);
             return;
           }
@@ -434,10 +513,17 @@
 
       isMenuOpen = true;
       menu.hidden = false;
-      wrap.classList.add("is-menu-open");
 
+      wrap.classList.add(
+        "is-menu-open"
+      );
+
+      /*
+        После появления меню в DOM
+        всегда фокусируем первый пункт.
+      */
       requestAnimationFrame(() => {
-        focusMenuOption(0);
+        focusFirstMenuOption();
       });
     }
 
@@ -453,7 +539,9 @@
       closeMenu();
       syncView();
 
-      wrap.classList.add("is-editing");
+      wrap.classList.add(
+        "is-editing"
+      );
 
       requestAnimationFrame(() => {
         trigger.focus({
@@ -484,13 +572,30 @@
         return;
       }
 
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      if (
+        e.key === "ArrowDown" ||
+        e.key === "ArrowUp"
+      ) {
         e.preventDefault();
-        openMenu();
+
+        if (!isMenuOpen) {
+          openMenu();
+          return;
+        }
+
+        focusMenuOption(
+          e.key === "ArrowDown"
+            ? 1
+            : -1
+        );
+
         return;
       }
 
-      if (isNativeDropdownActionKey(e) && !isDropdownActivateHotkey(e)) {
+      if (
+        isNativeDropdownActionKey(e) &&
+        !isDropdownActivateHotkey(e)
+      ) {
         stopDropdownActionKey(e);
         return;
       }
@@ -503,7 +608,11 @@
           return;
         }
 
-        focusMenuOption(0);
+        /*
+          Если меню уже открыто,
+          возвращаем курсор на первый пункт.
+        */
+        focusFirstMenuOption();
       }
     });
 
@@ -511,7 +620,11 @@
       e.stopPropagation();
     });
 
-    wrap.addEventListener("keydown", trapTabInsideCell, true);
+    wrap.addEventListener(
+      "keydown",
+      trapTabInsideCell,
+      true
+    );
 
     wrap.addEventListener("focusout", () => {
       setTimeout(() => {
@@ -534,21 +647,38 @@
     return wrap;
   }
 
-  function makeTableTagActions({ value, closeEditor }) {
-    if (!isRealTableTag(value)) return null;
+  function makeTableTagActions({
+    value,
+    closeEditor,
+  }) {
+    if (!isRealTableTag(value)) {
+      return null;
+    }
 
     const actions = document.createElement("div");
-    actions.className = "table-tag-compact-actions";
 
-    const renameBtn = document.createElement("button");
+    actions.className =
+      "table-tag-compact-actions";
+
+    const renameBtn =
+      document.createElement("button");
+
     renameBtn.type = "button";
-    renameBtn.className = "table-tag-compact-action";
-    renameBtn.textContent = "переименовать";
+    renameBtn.className =
+      "table-tag-compact-action";
 
-    const deleteBtn = document.createElement("button");
+    renameBtn.textContent =
+      "переименовать";
+
+    const deleteBtn =
+      document.createElement("button");
+
     deleteBtn.type = "button";
-    deleteBtn.className = "table-tag-compact-action";
-    deleteBtn.textContent = "удалить";
+    deleteBtn.className =
+      "table-tag-compact-action";
+
+    deleteBtn.textContent =
+      "удалить";
 
     [renameBtn, deleteBtn].forEach((btn) => {
       btn.addEventListener("mousedown", (e) => {
@@ -595,9 +725,13 @@
           e.code === "Space";
 
         const isActivateHotkey =
-          !!window.tableCellNav?.isCellActivateHotkey?.(e);
+          !!window.tableCellNav
+            ?.isCellActivateHotkey?.(e);
 
-        if (isNativeActionKey && !isActivateHotkey) {
+        if (
+          isNativeActionKey &&
+          !isActivateHotkey
+        ) {
           e.preventDefault();
           e.stopImmediatePropagation?.();
           return;
@@ -619,7 +753,8 @@
 
   function makeTableIconControl(node, column) {
     return makeTableDropdownControl(node, column, {
-      controlClass: "table-icon-dropdown-control",
+      controlClass:
+        "table-icon-dropdown-control",
 
       emptyLabel: "сбросить",
 
@@ -628,14 +763,21 @@
       },
 
       formatTrigger(value) {
-        return getTableSelectOptionLabel(node, column, value) || "сбросить";
+        return (
+          getTableSelectOptionLabel(
+            node,
+            column,
+            value
+          ) || "сбросить"
+        );
       },
     });
   }
 
   function makeTableTagCompactControl(node, column) {
     return makeTableDropdownControl(node, column, {
-      controlClass: "table-tag-dropdown-control",
+      controlClass:
+        "table-tag-dropdown-control",
 
       emptyLabel: "нет",
 
@@ -644,7 +786,13 @@
       },
 
       formatTrigger(value) {
-        return getTableSelectOptionLabel(node, column, value) || "нет";
+        return (
+          getTableSelectOptionLabel(
+            node,
+            column,
+            value
+          ) || "нет"
+        );
       },
 
       beforeCommit(value) {
@@ -652,7 +800,10 @@
           return value;
         }
 
-        const newTag = window.prompt("Новый тег", "");
+        const newTag = window.prompt(
+          "Новый тег",
+          ""
+        );
 
         if (!newTag || !newTag.trim()) {
           return false;
@@ -661,7 +812,10 @@
         return addTableTagOption(newTag);
       },
 
-      renderActions({ value, closeEditor }) {
+      renderActions({
+        value,
+        closeEditor,
+      }) {
         return makeTableTagActions({
           value,
           closeEditor,
@@ -672,39 +826,80 @@
 
   function makeTableCompactSelectControl(node, column) {
     return makeTableDropdownControl(node, column, {
-      controlClass: "table-simple-dropdown-control",
+      controlClass:
+        "table-simple-dropdown-control",
 
       emptyLabel: "нет",
 
       formatView(value) {
         if (!value) return "";
-        return getTableSelectOptionLabel(node, column, value);
+
+        return getTableSelectOptionLabel(
+          node,
+          column,
+          value
+        );
       },
 
       formatTrigger(value) {
-        return getTableSelectOptionLabel(node, column, value) || "нет";
+        return (
+          getTableSelectOptionLabel(
+            node,
+            column,
+            value
+          ) || "нет"
+        );
       },
     });
   }
 
   window.tableDropdownCells = {
-    getIconSymbol: getTableIconSymbol,
-    getSelectOptions: getTableSelectOptions,
-    getSelectLabel: getTableSelectLabel,
-    getSelectOptionLabel: getTableSelectOptionLabel,
-    makeDropdownControl: makeTableDropdownControl,
-    makeIconControl: makeTableIconControl,
-    makeTagControl: makeTableTagCompactControl,
-    makeSelectControl: makeTableCompactSelectControl,
+    getIconSymbol:
+      getTableIconSymbol,
+
+    getSelectOptions:
+      getTableSelectOptions,
+
+    getSelectLabel:
+      getTableSelectLabel,
+
+    getSelectOptionLabel:
+      getTableSelectOptionLabel,
+
+    makeDropdownControl:
+      makeTableDropdownControl,
+
+    makeIconControl:
+      makeTableIconControl,
+
+    makeTagControl:
+      makeTableTagCompactControl,
+
+    makeSelectControl:
+      makeTableCompactSelectControl,
   };
 
-  window.getTableIconSymbol = getTableIconSymbol;
-  window.getTableSelectOptions = getTableSelectOptions;
-  window.getTableSelectLabel = getTableSelectLabel;
-  window.getTableSelectOptionLabel = getTableSelectOptionLabel;
+  window.getTableIconSymbol =
+    getTableIconSymbol;
 
-  window.makeTableDropdownControl = makeTableDropdownControl;
-  window.makeTableIconControl = makeTableIconControl;
-  window.makeTableTagCompactControl = makeTableTagCompactControl;
-  window.makeTableCompactSelectControl = makeTableCompactSelectControl;
+  window.getTableSelectOptions =
+    getTableSelectOptions;
+
+  window.getTableSelectLabel =
+    getTableSelectLabel;
+
+  window.getTableSelectOptionLabel =
+    getTableSelectOptionLabel;
+
+  window.makeTableDropdownControl =
+    makeTableDropdownControl;
+
+  window.makeTableIconControl =
+    makeTableIconControl;
+
+  window.makeTableTagCompactControl =
+    makeTableTagCompactControl;
+
+  window.makeTableCompactSelectControl =
+    makeTableCompactSelectControl;
 })();

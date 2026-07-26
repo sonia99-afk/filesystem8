@@ -1,7 +1,7 @@
 // hotkey_hold_repeat.js
 // Единый repeat для зажатых хоткей-комбинаций.
-// Первое нажатие обрабатывают обычные keydown-обработчики.
-// Этот файл запускает только повтор после INITIAL_DELAY.
+// Первое нажатие выполняют обычные keydown-обработчики.
+// Этот файл запускает только последующий повтор.
 
 (function () {
   if (typeof window === "undefined") return;
@@ -12,60 +12,127 @@
   let heldCode = null;
   let heldAction = null;
   let heldEventSnapshot = null;
+
   let tStart = null;
   let tRepeat = null;
 
   const downKeys = new Set();
 
-  const REPEAT_ACTIONS = [
-    // Навигация
+  /*
+    Действия, доступные в структурных отображениях.
+  */
+  const TREE_REPEAT_ACTIONS = [
     "navUp",
     "navDown",
-    "navLeft",
-    "navRight",
 
     "levelNavUp",
     "levelNavDown",
+
     "branchNavLeft",
     "branchNavRight",
 
-    // Мультивыделение
     "rangeUp",
     "rangeDown",
+
     "deepUp",
     "deepDown",
+
     "branchRangeLeft",
     "branchRangeRight",
 
-    // Перемещение
     "moveUp",
     "moveDown",
+
     "levelMoveUp",
     "levelMoveDown",
+
     "branchMoveLeft",
     "branchMoveRight",
   ];
 
-  function isTableViewActive() {
-    return window.currentView === window.VIEW?.TABLE;
-  }
+  /*
+  Действия вертикальной иерархии
+  и вертикального айсикла.
+*/
+const VERTICAL_REPEAT_ACTIONS = [
+  "verticalListUp",
+  "verticalListDown",
+
+  "verticalLevelLeft",
+  "verticalLevelRight",
+
+  "verticalBranchUp",
+  "verticalBranchDown",
+
+  "rangeUp",
+  "rangeDown",
+
+  "deepUp",
+  "deepDown",
+
+  "branchRangeLeft",
+  "branchRangeRight",
+];
+
+  /*
+    Действия, доступные в табличном отображении.
+    По уровню и по ветке в таблице сейчас недоступны.
+  */
+  const TABLE_REPEAT_ACTIONS = [
+    "tableListUp",
+    "tableListDown",
+
+    "tablePropertyLeft",
+    "tablePropertyRight",
+
+    "rangeUp",
+    "rangeDown",
+
+    "deepUp",
+    "deepDown",
+
+    "branchRangeLeft",
+    "branchRangeRight",
+  ];
+
+function getActiveGroup() {
+  return (
+    window.hotkeysViewGroup
+      ?.getActiveGroup?.() ||
+    (
+      window.currentView ===
+      window.VIEW?.TABLE
+        ? "table"
+        : "main"
+    )
+  );
+}
+
+function isTableViewActive() {
+  return getActiveGroup() === "table";
+}
+
+function isVerticalViewActive() {
+  return getActiveGroup() ===
+    "vertical";
+}
 
   function isTypingTarget(el) {
     if (!el) return false;
 
-    const tag = (el.tagName || "").toLowerCase();
+    const tag = String(el.tagName || "").toLowerCase();
 
     return (
       tag === "input" ||
       tag === "textarea" ||
       tag === "select" ||
       el.isContentEditable ||
-      el.closest?.(".edit") ||
-      el.closest?.(".table-cell-editor") ||
-      el.closest?.(".table-rich-cell-editor") ||
-      el.closest?.(".table-duration-mask-editor") ||
-      el.closest?.(".table-dropdown-menu") ||
-      el.closest?.(".table-tag-compact-menu")
+      !!el.closest?.(".edit") ||
+      !!el.closest?.(".table-cell-editor") ||
+      !!el.closest?.(".table-rich-cell-editor") ||
+      !!el.closest?.(".table-duration-mask-editor") ||
+      !!el.closest?.(".table-dropdown-menu") ||
+      !!el.closest?.(".table-tag-compact-menu")
     );
   }
 
@@ -108,6 +175,7 @@
     return {
       key: e.key,
       code: e.code,
+
       shiftKey: !!e.shiftKey,
       altKey: !!e.altKey,
       ctrlKey: !!e.ctrlKey,
@@ -115,13 +183,36 @@
     };
   }
 
+  function getHotkeyMatcher() {
+    if (typeof window.isHotkey === "function") {
+      return window.isHotkey;
+    }
+
+    if (typeof isHotkey === "function") {
+      return isHotkey;
+    }
+
+    return null;
+  }
+
   function resolveActionFromEvent(e) {
     if (!isRepeatableBaseKey(e)) return null;
-    if (typeof isHotkey !== "function") return null;
     if (window.hotkeysMode === "custom") return null;
 
-    for (const action of REPEAT_ACTIONS) {
-      if (isHotkey(e, action)) {
+    const matcher = getHotkeyMatcher();
+    if (!matcher) return null;
+
+const group = getActiveGroup();
+
+const actions =
+  group === "table"
+    ? TABLE_REPEAT_ACTIONS
+    : group === "vertical"
+      ? VERTICAL_REPEAT_ACTIONS
+      : TREE_REPEAT_ACTIONS;
+
+    for (const action of actions) {
+      if (matcher(e, action)) {
         return action;
       }
     }
@@ -130,9 +221,26 @@
   }
 
   function canRunTreeActionNow() {
-    if (typeof isTreeLocked === "function" && isTreeLocked()) return false;
-    if (typeof treeHasFocus !== "undefined" && !treeHasFocus) return false;
-    if (typeof selectedId === "undefined" || !selectedId) return false;
+    if (
+      typeof isTreeLocked === "function" &&
+      isTreeLocked()
+    ) {
+      return false;
+    }
+
+    if (
+      typeof treeHasFocus !== "undefined" &&
+      !treeHasFocus
+    ) {
+      return false;
+    }
+
+    if (
+      typeof selectedId === "undefined" ||
+      !selectedId
+    ) {
+      return false;
+    }
 
     return true;
   }
@@ -140,151 +248,233 @@
   function canRunTableActionNow() {
     return !!(
       isTableViewActive() &&
-      document.getElementById("tree")?.querySelector?.(".structure-table")
+      document
+        .getElementById("tree")
+        ?.querySelector?.(".structure-table") &&
+      window.tableCellNav?.getSelectedCell?.()
     );
   }
 
   function runTableAction(action) {
     if (!canRunTableActionNow()) {
       stop();
-      return;
+      return false;
     }
 
     switch (action) {
-      case "navUp":
-        
-        return window.tableCellNav?.moveUp?.();
+      case "tableListUp":
+        return !!window.tableCellNav?.moveUp?.();
 
-      case "navDown":
-       
-        return window.tableCellNav?.moveDown?.();
+      case "tableListDown":
+        return !!window.tableCellNav?.moveDown?.();
 
-      case "navLeft":
-      
-        return window.tableCellNav?.moveLeft?.();
+      case "tablePropertyLeft":
+        return !!window.tableCellNav?.moveLeft?.();
 
-      case "navRight":
-       
-        return window.tableCellNav?.moveRight?.();
+      case "tablePropertyRight":
+        return !!window.tableCellNav?.moveRight?.();
 
       case "rangeUp":
-        return window.tableMultiSelectTree?.handleRangeKey?.(-1);
+        return !!window.tableMultiSelectTree
+          ?.handleRangeKey?.(-1);
 
       case "rangeDown":
-        return window.tableMultiSelectTree?.handleRangeKey?.(+1);
+        return !!window.tableMultiSelectTree
+          ?.handleRangeKey?.(1);
 
-      // Пока глубокое/веточное мультивыделение в таблице не подключаем.
-      // Когда сделаем отдельные table-модули для deep/branch — добавим сюда.
       case "deepUp":
-        return window.tableMultiSelectDeep?.handleDeepRangeKey?.(-1);
+        return !!window.tableMultiSelectDeep
+          ?.handleDeepRangeKey?.(-1);
 
-        case "deepDown":
-        return window.tableMultiSelectDeep?.handleDeepRangeKey?.(+1);
+      case "deepDown":
+        return !!window.tableMultiSelectDeep
+          ?.handleDeepRangeKey?.(1);
 
-        case "branchRangeLeft":
-  return window.tableMultiSelectBranch?.handleBranchRangeKey?.(-1);
+      case "branchRangeLeft":
+        return !!window.tableMultiSelectBranch
+          ?.handleBranchRangeKey?.(-1);
 
-case "branchRangeRight":
-  return window.tableMultiSelectBranch?.handleBranchRangeKey?.(+1);
-        return undefined;
+      case "branchRangeRight":
+        return !!window.tableMultiSelectBranch
+          ?.handleBranchRangeKey?.(1);
+
+      default:
+        return false;
     }
-
-    return undefined;
   }
+
+  function runVerticalAction(action) {
+  if (!canRunTreeActionNow()) {
+    stop();
+    return false;
+  }
+
+  switch (action) {
+    case "verticalListUp":
+      return !!window.verticalNav
+        ?.listUp?.();
+
+    case "verticalListDown":
+      return !!window.verticalNav
+        ?.listDown?.();
+
+    case "verticalLevelLeft":
+      return !!window.verticalNav
+        ?.levelLeft?.();
+
+    case "verticalLevelRight":
+      return !!window.verticalNav
+        ?.levelRight?.();
+
+    case "verticalBranchUp":
+      return !!window.verticalNav
+        ?.branchUp?.();
+
+    case "verticalBranchDown":
+      return !!window.verticalNav
+        ?.branchDown?.();
+
+    case "rangeUp":
+      return !!window.multiSelect
+        ?.handleRangeKey?.(-1);
+
+    case "rangeDown":
+      return !!window.multiSelect
+        ?.handleRangeKey?.(1);
+
+    case "deepUp":
+      return !!window.multiSelectDeep
+        ?.handleDeepRangeKey?.(-1);
+
+    case "deepDown":
+      return !!window.multiSelectDeep
+        ?.handleDeepRangeKey?.(1);
+
+    case "branchRangeLeft":
+      return !!window.multiSelectBranch
+        ?.handleBranchRangeKey?.(-1);
+
+    case "branchRangeRight":
+      return !!window.multiSelectBranch
+        ?.handleBranchRangeKey?.(1);
+
+    default:
+      return false;
+  }
+}
 
   function runTreeAction(action) {
     if (!canRunTreeActionNow()) {
       stop();
-      return;
+      return false;
     }
 
     switch (action) {
-      case "rangeUp":
-        return window.multiSelect?.handleRangeKey?.(-1);
-
-      case "rangeDown":
-        return window.multiSelect?.handleRangeKey?.(+1);
-
-      case "deepUp":
-        return window.multiSelectDeep?.handleDeepRangeKey?.(-1);
-
-      case "deepDown":
-        return window.multiSelectDeep?.handleDeepRangeKey?.(+1);
-
-      case "branchRangeLeft":
-        return window.multiSelectBranch?.handleBranchRangeKey?.(-1);
-
-      case "branchRangeRight":
-        return window.multiSelectBranch?.handleBranchRangeKey?.(+1);
-
       case "navUp":
-        return typeof moveSelection === "function"
-          ? moveSelection(-1)
-          : undefined;
+        if (typeof moveSelection === "function") {
+          moveSelection(-1);
+          return true;
+        }
+
+        return false;
 
       case "navDown":
-        return typeof moveSelection === "function"
-          ? moveSelection(+1)
-          : undefined;
+        if (typeof moveSelection === "function") {
+          moveSelection(1);
+          return true;
+        }
 
-      case "navLeft":
-        return typeof goParent === "function"
-          ? goParent(selectedId)
-          : undefined;
-
-      case "navRight":
-        return typeof goDeeper === "function"
-          ? goDeeper(selectedId)
-          : undefined;
-
-      case "moveUp":
-        return typeof moveByVisibleOrder === "function"
-          ? moveByVisibleOrder(-1)
-          : undefined;
-
-      case "moveDown":
-        return typeof moveByVisibleOrder === "function"
-          ? moveByVisibleOrder(+1)
-          : undefined;
+        return false;
 
       case "levelNavUp":
-        return window.levelNav?.up?.();
+        return !!window.levelNav?.up?.();
 
       case "levelNavDown":
-        return window.levelNav?.down?.();
+        return !!window.levelNav?.down?.();
 
       case "branchNavLeft":
-        return window.branchNav?.left?.();
+        return !!window.branchNav?.left?.();
 
       case "branchNavRight":
-        return window.branchNav?.right?.();
+        return !!window.branchNav?.right?.();
+
+      case "rangeUp":
+        return !!window.multiSelect
+          ?.handleRangeKey?.(-1);
+
+      case "rangeDown":
+        return !!window.multiSelect
+          ?.handleRangeKey?.(1);
+
+      case "deepUp":
+        return !!window.multiSelectDeep
+          ?.handleDeepRangeKey?.(-1);
+
+      case "deepDown":
+        return !!window.multiSelectDeep
+          ?.handleDeepRangeKey?.(1);
+
+      case "branchRangeLeft":
+        return !!window.multiSelectBranch
+          ?.handleBranchRangeKey?.(-1);
+
+      case "branchRangeRight":
+        return !!window.multiSelectBranch
+          ?.handleBranchRangeKey?.(1);
+
+      case "moveUp":
+        if (typeof moveByVisibleOrder === "function") {
+          moveByVisibleOrder(-1);
+          return true;
+        }
+
+        return false;
+
+      case "moveDown":
+        if (typeof moveByVisibleOrder === "function") {
+          moveByVisibleOrder(1);
+          return true;
+        }
+
+        return false;
 
       case "levelMoveUp":
-        return window.levelMove?.up?.();
+        return !!window.levelMove?.up?.();
 
       case "levelMoveDown":
-        return window.levelMove?.down?.();
+        return !!window.levelMove?.down?.();
 
       case "branchMoveLeft":
-        return window.branchMove?.left?.();
+        return !!window.branchMove?.left?.();
 
       case "branchMoveRight":
-        return window.branchMove?.right?.();
-    }
+        return !!window.branchMove?.right?.();
 
-    return undefined;
+      default:
+        return false;
+    }
   }
 
-  function runAction(action) {
-    if (isTableViewActive()) {
-      return runTableAction(action);
-    }
+function runAction(action) {
+  const group = getActiveGroup();
 
-    return runTreeAction(action);
+  if (group === "table") {
+    return runTableAction(action);
   }
+
+  if (group === "vertical") {
+    return runVerticalAction(action);
+  }
+
+  return runTreeAction(action);
+}
 
   function step() {
-    if (!heldCode || !heldAction || !downKeys.has(heldCode)) {
+    if (
+      !heldCode ||
+      !heldAction ||
+      !downKeys.has(heldCode)
+    ) {
       stop();
       return;
     }
@@ -300,17 +490,29 @@ case "branchRangeRight":
     heldEventSnapshot = makeEventSnapshot(e);
 
     tStart = setTimeout(() => {
-      if (!heldAction || !heldCode) return;
+      tStart = null;
 
-      tRepeat = setInterval(() => {
-        step();
-      }, REPEAT_MS);
+      if (
+        !heldAction ||
+        !heldCode ||
+        !downKeys.has(heldCode)
+      ) {
+        stop();
+        return;
+      }
+
+      tRepeat = setInterval(step, REPEAT_MS);
     }, INITIAL_DELAY);
   }
 
   function isSameHeldCombo(e) {
-    if (!heldCode || !heldEventSnapshot) return false;
-    if (e.code !== heldCode) return false;
+    if (!heldCode || !heldEventSnapshot) {
+      return false;
+    }
+
+    if (e.code !== heldCode) {
+      return false;
+    }
 
     return (
       !!e.shiftKey === heldEventSnapshot.shiftKey &&
@@ -323,6 +525,9 @@ case "branchRangeRight":
   window.addEventListener(
     "keydown",
     (e) => {
+      if (window.hotkeysMode === "custom") return;
+
+      
       if (isTypingTarget(e.target)) return;
       if (!isRepeatableBaseKey(e)) return;
 
@@ -330,8 +535,8 @@ case "branchRangeRight":
       if (!action) return;
 
       /*
-        Повторные browser keydown глушим.
-        Повтор делает только наш setInterval.
+        Повторные системные keydown блокируем.
+        Фактический повтор выполняет наш таймер.
       */
       if (e.repeat) {
         if (isSameHeldCombo(e)) {
@@ -361,7 +566,10 @@ case "branchRangeRight":
 
       if (!heldCode) return;
 
-      if (e.code === heldCode || isModifierKey(e)) {
+      if (
+        e.code === heldCode ||
+        isModifierKey(e)
+      ) {
         stop();
       }
     },
@@ -379,22 +587,26 @@ case "branchRangeRight":
   });
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      downKeys.clear();
-      stop();
-    }
+    if (!document.hidden) return;
+
+    downKeys.clear();
+    stop();
   });
 
   window.addEventListener("mouseup", stop, true);
 
   window.hotkeyHoldRepeat = {
     stop,
+
     debug() {
       return {
         heldCode,
         heldAction,
         heldEventSnapshot,
         downKeys: Array.from(downKeys),
+        activeGroup: getActiveGroup(),
+tableView: isTableViewActive(),
+verticalView: isVerticalViewActive(),
       };
     },
   };

@@ -82,55 +82,85 @@
     );
   }
 
-  function handleTableUploadCellsEnter(e) {
-    if (isTableUploadTypingTarget(e.target)) return;
-
-    const selectedCell = getSelectedTableUploadCell();
-    if (!selectedCell) return;
-
-    const active = document.activeElement;
-
-    /*
-      Если Tab поставил фокус на кнопку внутри upload-ячейки,
-      хоткей должен нажать именно её: крестик, загрузку, замену.
-    */
-    if (
-      active &&
-      selectedCell.contains(active) &&
-      isTableUploadActionElement(active)
-    ) {
-      /*
-        Если хоткей переназначили, старый Enter/Space больше
-        не должен нативно нажимать кнопку.
-      */
-      if (isNativeTableActionKey(e) && !isTableCellActivateHotkey(e)) {
-        stopTableActionKey(e);
-        return;
-      }
-
-      if (!isTableCellActivateHotkey(e)) {
-        return;
-      }
-
-      stopTableActionKey(e);
-      active.click();
-      return;
-    }
-
-    /*
-      Если фокус просто на самой upload-ячейке,
-      хоткей открывает загрузку/замену, но не удаление.
-    */
-    if (!isTableCellActivateHotkey(e)) {
-      return;
-    }
-
-    const defaultAction = getDefaultUploadActionElement(selectedCell);
-    if (!defaultAction) return;
-
-    stopTableActionKey(e);
-    defaultAction.click();
+function handleTableUploadCellsEnter(e) {
+  if (isTableUploadTypingTarget(e.target)) {
+    return;
   }
+
+  const selectedCell =
+    getSelectedTableUploadCell();
+
+  if (!selectedCell) return;
+
+  const active =
+    document.activeElement;
+
+  const isActivateHotkey =
+    isTableCellActivateHotkey(e);
+
+  /*
+    Если обычный Enter или Space больше
+    не являются назначенным хоткеем,
+    не разрешаем им нативно нажимать кнопку.
+  */
+  if (
+    isNativeTableActionKey(e) &&
+    !isActivateHotkey &&
+    active &&
+    selectedCell.contains(active) &&
+    isTableUploadActionElement(active)
+  ) {
+    stopTableActionKey(e);
+    return;
+  }
+
+  if (!isActivateHotkey) {
+    return;
+  }
+
+  /*
+    Режим 2:
+    фокус уже находится на кнопке внутри ячейки.
+
+    Повторный хоткей нажимает именно эту кнопку:
+    - загрузить;
+    - добавить;
+    - заменить;
+    - удалить файл или изображение.
+  */
+  if (
+    active &&
+    selectedCell.contains(active) &&
+    isTableUploadActionElement(active)
+  ) {
+    stopTableActionKey(e);
+
+    active.click();
+
+    return;
+  }
+
+  /*
+    Режим 1:
+    фокус находится на самой ячейке.
+
+    Первый хоткей ничего не открывает,
+    а только переводит фокус на основную
+    кнопку загрузки / добавления / замены.
+  */
+  const defaultAction =
+    getDefaultUploadActionElement(
+      selectedCell
+    );
+
+  if (!defaultAction) return;
+
+  stopTableActionKey(e);
+
+  defaultAction.focus({
+    preventScroll: true,
+  });
+}
 
   function ensureTableUploadCellsEnterHotkey() {
     if (document.__tableUploadCellsEnterHotkeyBound) return;

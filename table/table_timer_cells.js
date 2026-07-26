@@ -65,6 +65,30 @@
     ].join(":");
   }
 
+  function formatShortDate(ts) {
+  const d = new Date(ts);
+
+  const months = [
+    "янв",
+    "фев",
+    "мар",
+    "апр",
+    "мая",
+    "июн",
+    "июл",
+    "авг",
+    "сен",
+    "окт",
+    "ноя",
+    "дек",
+  ];
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = months[d.getMonth()];
+
+  return `${day} ${month}`;
+}
+
   function isSameCalendarDate(aTs, bTs) {
     const a = new Date(aTs);
     const b = new Date(bTs);
@@ -106,48 +130,215 @@
     return `${formatSessionDateTime(startAt)} - ${formatSessionDateTime(endAt)}`;
   }
 
-  function makeSessionsBlock(sessionsList) {
-    const sessions = document.createElement("div");
-    sessions.className = "table-time-sessions";
+  function formatCurrentSessionRange(startAt, now = Date.now()) {
+  const start = Number(startAt) || 0;
 
-    const title = document.createElement("div");
-    title.className = "table-time-sessions-title";
-    title.textContent = "Сессии";
+  if (!start) return "";
 
-    sessions.appendChild(title);
+  const startText = formatSessionDateTime(start);
 
-    if (!sessionsList.length) {
-      const empty = document.createElement("div");
-      empty.className = "table-time-session-empty";
-      empty.textContent = "сессий пока нет";
-      sessions.appendChild(empty);
+  /*
+    Если сессия всё ещё идёт в тот же день,
+    дату окончания повторно не показываем.
+  */
+  if (isSameCalendarDate(start, now)) {
+    return `${startText} - --:--`;
+  }
 
-      return sessions;
-    }
+  /*
+    Если сессия перешла на другой день,
+    вместо даты окончания показываем:
+    dd mmm: --:--
+  */
+  return `${startText} - ${formatShortDate(now)}: --:--`;
+}
 
-    sessionsList
-      .slice()
-      .reverse()
-      .forEach((session) => {
-        const item = document.createElement("div");
-        item.className = "table-time-session";
+function makeSessionsBlock(sessionsList, currentSession = null) {
+  const sessions = document.createElement("div");
+  sessions.className = "table-time-sessions";
 
-        const duration = document.createElement("div");
-        duration.className = "table-time-session-duration";
-        duration.textContent = formatDurationMs(session.durationMs);
+  const title = document.createElement("div");
+  title.className = "table-time-sessions-title";
+  title.textContent = "Сессии";
 
-        const range = document.createElement("div");
-        range.className = "table-time-session-range";
-        range.textContent = formatSessionRange(session);
+  sessions.appendChild(title);
 
-        item.appendChild(duration);
-        item.appendChild(range);
+  /*
+    Текущая активная сессия всегда показывается
+    первой, над завершёнными сессиями.
+  */
+  if (currentSession?.startAt) {
+    const item = document.createElement("div");
 
-        sessions.appendChild(item);
-      });
+    item.className =
+      "table-time-session table-time-session-current";
+
+    item.dataset.startAt = String(currentSession.startAt);
+
+    const duration = document.createElement("div");
+
+    duration.className =
+      "table-time-session-duration table-time-session-current-label";
+
+    duration.textContent = "текущая";
+
+    const range = document.createElement("div");
+
+    range.className =
+      "table-time-session-range table-time-session-current-range";
+
+    range.textContent = formatCurrentSessionRange(
+      currentSession.startAt
+    );
+
+    item.appendChild(duration);
+    item.appendChild(range);
+
+    sessions.appendChild(item);
+  }
+
+  const finishedSessions = Array.isArray(sessionsList)
+    ? sessionsList
+    : [];
+
+  if (!currentSession?.startAt && !finishedSessions.length) {
+    const empty = document.createElement("div");
+
+    empty.className = "table-time-session-empty";
+    empty.textContent = "сессий пока нет";
+
+    sessions.appendChild(empty);
 
     return sessions;
   }
+
+  finishedSessions
+    .slice()
+    .reverse()
+    .forEach((session) => {
+      const item = document.createElement("div");
+      item.className = "table-time-session";
+
+      const duration = document.createElement("div");
+
+      duration.className =
+        "table-time-session-duration";
+
+      duration.textContent = formatDurationMs(
+        session.durationMs
+      );
+
+      const range = document.createElement("div");
+
+      range.className =
+        "table-time-session-range";
+
+      range.textContent =
+        formatSessionRange(session);
+
+      item.appendChild(duration);
+      item.appendChild(range);
+
+      sessions.appendChild(item);
+    });
+
+  return sessions;
+}
+
+function hasOpenTableSessionsWindow() {
+  return (
+    tableTimeSessionsOpenIds.size > 0 ||
+    tableTimerSessionsOpenIds.size > 0
+  );
+}
+
+function closeAllTableSessionsWindows(options = {}) {
+  const wasOpen = hasOpenTableSessionsWindow();
+
+  tableTimeSessionsOpenIds.clear();
+  tableTimerSessionsOpenIds.clear();
+
+  if (
+    wasOpen &&
+    options.rerender !== false
+  ) {
+    rerender();
+  }
+}
+
+function toggleTableSessionsWindow(type, nodeId) {
+  if (!nodeId) return;
+
+  const targetSet =
+    type === "timer"
+      ? tableTimerSessionsOpenIds
+      : tableTimeSessionsOpenIds;
+
+  const wasAlreadyOpen =
+    targetSet.has(nodeId);
+
+  /*
+    Одновременно открыто только одно
+    окно сессий.
+  */
+  tableTimeSessionsOpenIds.clear();
+  tableTimerSessionsOpenIds.clear();
+
+  if (!wasAlreadyOpen) {
+    targetSet.add(nodeId);
+  }
+
+  rerender();
+}
+
+function ensureTableSessionsOutsideClick() {
+  if (document.__tableSessionsOutsideClickBound) {
+    return;
+  }
+
+  document.__tableSessionsOutsideClickBound = true;
+
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!hasOpenTableSessionsWindow()) {
+        return;
+      }
+
+      const target = e.target;
+
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      /*
+        Клик внутри самого окна или внутри
+        соответствующей ячейки его не закрывает.
+      */
+      if (
+        target.closest(
+          [
+            ".table-time-sessions",
+            ".table-time-counter",
+            ".table-timer-countdown",
+          ].join(",")
+        )
+      ) {
+        return;
+      }
+
+      /*
+        Закрываем после завершения текущего
+        pointer-события, чтобы не мешать клику
+        по другой ячейке таблицы.
+      */
+      setTimeout(() => {
+        closeAllTableSessionsWindows();
+      }, 0);
+    },
+    true
+  );
+}
 
   /* =========================================================
      Счётчик времени
@@ -306,20 +497,17 @@
     timeBtn.textContent = formatDurationMs(elapsedMs);
     timeBtn.title = "Показать / скрыть сессии";
 
-    timeBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+timeBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
 
-      selectNode(node);
+  selectNode(node);
 
-      if (tableTimeSessionsOpenIds.has(node.id)) {
-        tableTimeSessionsOpenIds.delete(node.id);
-      } else {
-        tableTimeSessionsOpenIds.add(node.id);
-      }
-
-      rerender();
-    });
+  toggleTableSessionsWindow(
+    "counter",
+    node.id
+  );
+});
 
     const resetBtn = document.createElement("button");
     resetBtn.type = "button";
@@ -340,9 +528,21 @@
 
     wrap.appendChild(top);
 
-    if (tableTimeSessionsOpenIds.has(node.id)) {
-      wrap.appendChild(makeSessionsBlock(state.sessions));
-    }
+if (tableTimeSessionsOpenIds.has(node.id)) {
+  const currentSession =
+    state.running && state.startedAt
+      ? {
+          startAt: Number(state.startedAt),
+        }
+      : null;
+
+  wrap.appendChild(
+    makeSessionsBlock(
+      state.sessions,
+      currentSession
+    )
+  );
+}
 
     ensureTableTimeTicker();
 
@@ -928,20 +1128,17 @@
     timeBtn.textContent = formatDurationMs(remainingMs);
     timeBtn.title = "Показать / скрыть сессии";
 
-    timeBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+timeBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
 
-      selectNode(node);
+  selectNode(node);
 
-      if (tableTimerSessionsOpenIds.has(node.id)) {
-        tableTimerSessionsOpenIds.delete(node.id);
-      } else {
-        tableTimerSessionsOpenIds.add(node.id);
-      }
-
-      rerender();
-    });
+  toggleTableSessionsWindow(
+    "timer",
+    node.id
+  );
+});
 
     const resetBtn = document.createElement("button");
     resetBtn.type = "button";
@@ -964,9 +1161,21 @@
 
     wrap.appendChild(top);
 
-    if (tableTimerSessionsOpenIds.has(node.id)) {
-      wrap.appendChild(makeSessionsBlock(state.sessions));
-    }
+if (tableTimerSessionsOpenIds.has(node.id)) {
+  const currentSession =
+    state.running && state.startedAt
+      ? {
+          startAt: Number(state.startedAt),
+        }
+      : null;
+
+  wrap.appendChild(
+    makeSessionsBlock(
+      state.sessions,
+      currentSession
+    )
+  );
+}
 
     ensureTableTimeTicker();
 
@@ -977,11 +1186,13 @@
      Обновление видимых значений
   ========================================================= */
 
-  function updateVisibleTimeCounters() {
-    const host = document.getElementById("tree");
-    if (!host) return;
+function updateVisibleTimeCounters() {
+  const host = document.getElementById("tree");
+  if (!host) return;
 
-    host.querySelectorAll(".table-time-counter[data-id]").forEach((wrap) => {
+  host
+    .querySelectorAll(".table-time-counter[data-id]")
+    .forEach((wrap) => {
       const id = wrap.dataset.id;
       const key = wrap.dataset.key || "timeCounter";
 
@@ -989,21 +1200,52 @@
       if (!node) return;
 
       const state = getTimeCounterState(node, key);
-      const value = wrap.querySelector(".table-time-value");
+
+      const value = wrap.querySelector(
+        ".table-time-value"
+      );
 
       if (value) {
-        value.textContent = formatDurationMs(getTimeCounterElapsedMs(state));
+        value.textContent = formatDurationMs(
+          getTimeCounterElapsedMs(state)
+        );
       }
 
-      const play = wrap.querySelector(".table-time-play");
+      const play = wrap.querySelector(
+        ".table-time-play"
+      );
 
       if (play) {
-        play.textContent = state.running ? "⏸" : "▶";
-        play.title = state.running ? "Пауза и записать сессию" : "Старт";
+        play.textContent = state.running
+          ? "⏸"
+          : "▶";
+
+        play.title = state.running
+          ? "Пауза и записать сессию"
+          : "Старт";
+      }
+
+      const currentRange = wrap.querySelector(
+        ".table-time-session-current-range"
+      );
+
+      if (
+        currentRange &&
+        state.running &&
+        state.startedAt
+      ) {
+        currentRange.textContent =
+          formatCurrentSessionRange(
+            state.startedAt
+          );
       }
     });
 
-    host.querySelectorAll(".table-timer-countdown[data-id]").forEach((wrap) => {
+  host
+    .querySelectorAll(
+      ".table-timer-countdown[data-id]"
+    )
+    .forEach((wrap) => {
       const id = wrap.dataset.id;
       const key = wrap.dataset.key || "timer";
 
@@ -1011,38 +1253,76 @@
       if (!node) return;
 
       const state = getTimerState(node, key);
-      const remainingMs = getTimerRemainingMs(state);
 
-      if (state.running && remainingMs <= 0) {
+      const remainingMs =
+        getTimerRemainingMs(state);
+
+      if (
+        state.running &&
+        remainingMs <= 0
+      ) {
         finishTimerAtZero(node, key);
         return;
       }
 
-      const value = wrap.querySelector(".table-timer-countdown-value");
+      const value = wrap.querySelector(
+        ".table-timer-countdown-value"
+      );
 
       if (value) {
-        value.textContent = formatDurationMs(remainingMs);
+        value.textContent =
+          formatDurationMs(remainingMs);
       }
 
-      const play = wrap.querySelector(".table-timer-countdown-play");
+      const play = wrap.querySelector(
+        ".table-timer-countdown-play"
+      );
 
       if (play) {
-        play.textContent = state.running ? "⏸" : "▶";
-        play.title = state.running ? "Пауза и записать сессию" : "Старт";
-        play.disabled = !state.running && remainingMs <= 0;
+        play.textContent = state.running
+          ? "⏸"
+          : "▶";
+
+        play.title = state.running
+          ? "Пауза и записать сессию"
+          : "Старт";
+
+        play.disabled =
+          !state.running &&
+          remainingMs <= 0;
+      }
+
+      const currentRange = wrap.querySelector(
+        ".table-time-session-current-range"
+      );
+
+      if (
+        currentRange &&
+        state.running &&
+        state.startedAt
+      ) {
+        currentRange.textContent =
+          formatCurrentSessionRange(
+            state.startedAt
+          );
       }
     });
-  }
+}
 
-  function ensureTableTimeTicker() {
-    if (tableTimeTicker) return;
+function ensureTableTimeTicker() {
+  if (tableTimeTicker) return;
 
-    tableTimeTicker = setInterval(() => {
-      try {
-        updateVisibleTimeCounters();
-      } catch (_) {}
-    }, 1000);
-  }
+  tableTimeTicker = setInterval(() => {
+    try {
+      updateVisibleTimeCounters();
+    } catch (error) {
+      console.error(
+        "Ошибка обновления таймеров таблицы:",
+        error
+      );
+    }
+  }, 1000);
+}
 
   /* =========================================================
      Hotkey / Enter внутри timer-ячеек
@@ -1145,6 +1425,8 @@
 
     document.addEventListener("keydown", handleTableTimerCellsEnter, true);
   }
+
+  ensureTableSessionsOutsideClick();
 
   window.tableTimerCells = {
     makeTimeCounterControl: makeTableTimeCounterControl,

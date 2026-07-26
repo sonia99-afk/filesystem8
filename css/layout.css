@@ -52,24 +52,84 @@
     overflow: auto;
   }
   
-  .sidebar {
-    grid-column: 3;
-    grid-row: 1 / 4;
-  
-    width: auto;
-    min-width: 0;
-  
-    border-left: 1px solid #989898;
-  
-    padding-top: 75px;
-    padding-left: 31px;
-    padding-right: 31px;
-  
-    position: relative;
-    z-index: 2;
-    background: #fff;
-    overflow: auto;
-  }
+.sidebar {
+  grid-column: 3;
+  grid-row: 1 / 4;
+
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+
+  height: 100%;
+
+  border-left: 1px solid #989898;
+
+  box-sizing: border-box;
+
+  position: relative;
+  z-index: 2;
+
+  background: #fff;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+  .hotkeys-panel-header {
+
+  flex: 0 0 auto;
+
+  padding-top: 75px;
+  padding-left: 31px;
+  padding-right: 31px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #d5d5d5;
+
+
+  z-index: 2;
+
+}
+
+.hotkeys-panel-scroll {
+
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: auto;
+
+  padding-left: 31px;
+  padding-right: 31px;
+
+}
+
+.hotkeys-panel-footer {
+
+  flex: 0 0 auto;
+
+  padding-left: 31px;
+  padding-right: 31px;
+
+  padding-top: 10px;
+
+
+  background: white;
+
+  border-top: 1px solid #d5d5d5;
+
+  z-index: 2;
+
+}
+
+.hotkeys-panel-scroll .hotkeys-section {
+
+  width: max-content;
+
+}
+
   
   .tree-scroll {
     width: 100%;

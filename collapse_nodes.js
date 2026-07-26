@@ -7,17 +7,85 @@
       return collapsed.has(id);
     }
   
-    function toggle(id) {
-      if (!id) return;
-  
-      if (collapsed.has(id)) {
-        collapsed.delete(id);
-      } else {
-        collapsed.add(id);
+function toggle(id) {
+  if (!id) return;
+
+  const wasCollapsed = collapsed.has(id);
+
+  if (wasCollapsed) {
+    /*
+      Раскрываем объект.
+    */
+    collapsed.delete(id);
+
+    const found =
+      typeof findWithParent === "function"
+        ? findWithParent(root, id)
+        : null;
+
+    const children = found?.node?.children || [];
+
+    /*
+      Выбираем первый доступный дочерний объект.
+
+      isSelectableVisibleId дополнительно исключает:
+      - скрытые боковой кнопкой объекты;
+      - скрытые отметкой объекты;
+      - недоступные элементы в режиме фокуса.
+    */
+    const firstOpenedChild =
+      children.find((child) => {
+        if (
+          typeof isSelectableVisibleId === "function"
+        ) {
+          return isSelectableVisibleId(child.id);
+        }
+
+        return true;
+      }) || null;
+
+    if (firstOpenedChild) {
+      selectedId = firstOpenedChild.id;
+      treeHasFocus = true;
+
+      /*
+        В таблице переносим активную ячейку
+        в ту же колонку первой раскрытой строки.
+      */
+      if (window.tableSelectedCell) {
+        window.tableSelectedCell = {
+          ...window.tableSelectedCell,
+          rowId: firstOpenedChild.id,
+        };
       }
-  
-      render();
+    } else {
+      /*
+        Если все дочерние объекты скрыты,
+        выбранным остаётся сам родитель.
+      */
+      selectedId = id;
+      treeHasFocus = true;
     }
+  } else {
+    /*
+      Сворачиваем объект.
+      Выбранным остаётся сам сворачиваемый объект.
+    */
+    collapsed.add(id);
+
+    selectedId = id;
+    treeHasFocus = true;
+
+    if (window.tableSelectedCell) {
+      window.tableSelectedCell = {
+        ...window.tableSelectedCell,
+        rowId: id,
+      };
+    }
+  }
+
+  render();
+}
 
     function collapseLevel(level) {
         if (typeof root === "undefined") return;
