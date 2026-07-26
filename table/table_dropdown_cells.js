@@ -191,6 +191,36 @@
 
     let isMenuOpen = false;
 
+    let releaseHorizontalScrollLock = null;
+
+function lockHorizontalScroll() {
+  if (releaseHorizontalScrollLock) return;
+
+  const td = wrap.closest("td");
+
+  releaseHorizontalScrollLock =
+    window.tableAutoscroll
+      ?.lockHorizontalPosition?.(td) || null;
+}
+
+function unlockHorizontalScrollSoon() {
+  const release = releaseHorizontalScrollLock;
+
+  releaseHorizontalScrollLock = null;
+
+  if (typeof release !== "function") return;
+
+  /*
+    Ждём возвращения фокуса на саму ячейку,
+    чтобы браузер не прокрутил таблицу в этот момент.
+  */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      release();
+    });
+  });
+}
+
     function getCellFocusableElements() {
       const cell = wrap.closest("td") || wrap;
 
@@ -300,13 +330,36 @@
       });
     }
 
-    function getMenuOptions() {
-      return Array.from(
-        menu.querySelectorAll(
-          ".table-tag-compact-option"
-        )
-      );
-    }
+function getMenuNavigationItems() {
+  return Array.from(
+    menu.querySelectorAll(
+      [
+        ".table-tag-compact-option",
+        ".table-tag-compact-action",
+      ].join(",")
+    )
+  ).filter((element) => {
+    if (!element) return false;
+    if (element.disabled) return false;
+    if (element.hidden) return false;
+    if (element.closest("[hidden]")) return false;
+
+    const style = window.getComputedStyle(element);
+
+    return (
+      style.display !== "none" &&
+      style.visibility !== "hidden"
+    );
+  });
+}
+
+function getMenuOptions() {
+  return Array.from(
+    menu.querySelectorAll(
+      ".table-tag-compact-option"
+    )
+  );
+}
 
     /*
       При открытии меню всегда ставим
@@ -333,32 +386,31 @@
       ещё не находится внутри меню,
       начальной позицией считаем первый пункт.
     */
-    function focusMenuOption(delta = 0) {
-      const options = getMenuOptions();
+function focusMenuItem(delta = 0) {
+  const items = getMenuNavigationItems();
 
-      if (!options.length) return;
+  if (!items.length) return;
 
-      const active = document.activeElement;
-      let index = options.indexOf(active);
+  const active = document.activeElement;
+  let index = items.indexOf(active);
 
-      if (index < 0) {
-        index = 0;
-      } else {
-        index += delta;
-      }
+  if (index < 0) {
+    index = delta < 0
+      ? items.length - 1
+      : 0;
+  } else {
+    index =
+      (
+        index +
+        delta +
+        items.length
+      ) % items.length;
+  }
 
-      const nextIndex = Math.max(
-        0,
-        Math.min(
-          options.length - 1,
-          index
-        )
-      );
-
-      options[nextIndex].focus({
-        preventScroll: true,
-      });
-    }
+  items[index].focus({
+    preventScroll: true,
+  });
+}
 
     function closeMenu() {
       isMenuOpen = false;
@@ -381,6 +433,8 @@
       if (options.restoreFocus !== false) {
         restoreCellFocus();
       }
+
+      unlockHorizontalScrollSoon();
     }
 
     function commitValue(value) {
@@ -466,13 +520,13 @@
 
           if (e.key === "ArrowDown") {
             e.preventDefault();
-            focusMenuOption(1);
+            focusMenuItem(1);
             return;
           }
 
           if (e.key === "ArrowUp") {
             e.preventDefault();
-            focusMenuOption(-1);
+            focusMenuItem(-1);
             return;
           }
 
@@ -495,12 +549,13 @@
 
       if (typeof config.renderActions === "function") {
         const actions = config.renderActions({
-          node,
-          column,
-          value: currentValue,
-          closeEditor,
-          restoreCellFocus,
-        });
+  node,
+  column,
+  value: currentValue,
+  closeEditor,
+  restoreCellFocus,
+  focusMenuItem,
+});
 
         if (actions) {
           menu.appendChild(actions);
@@ -535,6 +590,8 @@
 
       window.selectedId = node.id;
       window.treeHasFocus = true;
+
+      lockHorizontalScroll();
 
       closeMenu();
       syncView();
@@ -583,7 +640,7 @@
           return;
         }
 
-        focusMenuOption(
+        focusMenuItem(
           e.key === "ArrowDown"
             ? 1
             : -1
@@ -647,10 +704,11 @@
     return wrap;
   }
 
-  function makeTableTagActions({
-    value,
-    closeEditor,
-  }) {
+function makeTableTagActions({
+  value,
+  closeEditor,
+  focusMenuItem,
+}) {
     if (!isRealTableTag(value)) {
       return null;
     }
@@ -711,6 +769,22 @@
     [renameBtn, deleteBtn].forEach((btn) => {
       btn.addEventListener("keydown", (e) => {
         e.stopPropagation();
+
+        if (e.key === "ArrowDown") {
+  e.preventDefault();
+  e.stopImmediatePropagation?.();
+
+  focusMenuItem?.(1);
+  return;
+}
+
+if (e.key === "ArrowUp") {
+  e.preventDefault();
+  e.stopImmediatePropagation?.();
+
+  focusMenuItem?.(-1);
+  return;
+}
 
         if (e.key === "Escape") {
           e.preventDefault();
@@ -812,15 +886,17 @@
         return addTableTagOption(newTag);
       },
 
-      renderActions({
-        value,
-        closeEditor,
-      }) {
-        return makeTableTagActions({
-          value,
-          closeEditor,
-        });
-      },
+renderActions({
+  value,
+  closeEditor,
+  focusMenuItem,
+}) {
+  return makeTableTagActions({
+    value,
+    closeEditor,
+    focusMenuItem,
+  });
+},
     });
   }
 

@@ -171,6 +171,23 @@
       return false;
     }
 
+    const releaseHorizontalScrollLock =
+  window.tableAutoscroll?.lockHorizontalPosition?.(td);
+
+let horizontalScrollLockReleased = false;
+
+function releaseHorizontalScroll() {
+  if (horizontalScrollLockReleased) return;
+
+  horizontalScrollLockReleased = true;
+
+  if (
+    typeof releaseHorizontalScrollLock === "function"
+  ) {
+    releaseHorizontalScrollLock();
+  }
+}
+
     const oldValue = getTableProp(node, column.key);
 
     td.classList.add("is-editing");
@@ -181,10 +198,117 @@
     editor.type = column.inputType || "text";
     editor.value = oldValue || "";
 
+    let editorWrap = null;
+let datePickerHitArea = null;
+
+if (editor.type === "date") {
+  editorWrap =
+    document.createElement("div");
+
+  editorWrap.className =
+    "table-direct-date-editor-wrap";
+
+  /*
+    Прозрачная кнопка располагается поверх
+    существующей браузерной иконки календаря.
+
+    Сама иконка остаётся видна под кнопкой.
+  */
+  datePickerHitArea =
+    document.createElement("button");
+
+  datePickerHitArea.type = "button";
+
+  datePickerHitArea.className =
+    "table-direct-date-picker-hit-area";
+
+  datePickerHitArea.tabIndex = -1;
+
+  datePickerHitArea.setAttribute(
+    "aria-label",
+    "Открыть календарь"
+  );
+
+  datePickerHitArea.title =
+    "Открыть календарь";
+
+  /*
+    Не разрешаем кнопке забрать фокус
+    у поля даты, иначе редактор закроется по blur.
+  */
+  datePickerHitArea.addEventListener(
+    "pointerdown",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+    }
+  );
+
+  datePickerHitArea.addEventListener(
+    "click",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+
+      window.tableDatePicker?.toggle?.({
+        input: editor,
+        anchor: td,
+      });
+
+      editor.focus({
+        preventScroll: true,
+      });
+    }
+  );
+}
+
+    if (editor.type === "date") {
+  editor.addEventListener(
+    "pointerdown",
+    (e) => {
+      const rect =
+        editor.getBoundingClientRect();
+
+      /*
+        Нативная иконка календаря находится
+        примерно в последних 32 пикселях input.
+      */
+      const pickerZoneLeft =
+        rect.right - 32;
+
+      if (e.clientX < pickerZoneLeft) {
+        return;
+      }
+
+      /*
+        Не разрешаем браузеру открыть
+        собственный календарь.
+      */
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+
+      window.tableDatePicker?.toggle?.({
+        input: editor,
+        anchor: td,
+      });
+
+      editor.focus({
+        preventScroll: true,
+      });
+    },
+    true
+  );
+}
+
     let finished = false;
 
     function finish(save, options = {}) {
       if (finished) return;
+      window.tableDatePicker
+  ?.closeForInput?.(editor);
 
       const mode = options.mode || "blur";
 
@@ -218,12 +342,20 @@
       td.classList.remove("is-editing", "is-invalid");
       renderDirectTableCellView(td, node, column);
 
-      requestAnimationFrame(() => {
-        window.tableCellNav?.selectCell?.(td, {
-          focus: true,
-          scroll: false,
-        });
-      });
+requestAnimationFrame(() => {
+  window.tableCellNav?.selectCell?.(td, {
+    focus: true,
+    scroll: false,
+  });
+
+  /*
+    Снимаем блокировку только после возвращения
+    фокуса на ячейку.
+  */
+  requestAnimationFrame(() => {
+    releaseHorizontalScroll();
+  });
+});
     }
 
     editor.addEventListener("click", (e) => {
@@ -253,15 +385,21 @@
       }
     });
 
-    editor.addEventListener("input", () => {
-      editor.classList.remove("is-invalid");
-      td.classList.remove("is-invalid");
-    });
+   editor.addEventListener("input", () => {
+  editor.classList.remove("is-invalid");
+  td.classList.remove("is-invalid");
 
-    editor.addEventListener("change", () => {
-      editor.classList.remove("is-invalid");
-      td.classList.remove("is-invalid");
-    });
+  window.tableDatePicker
+    ?.position?.();
+});
+
+editor.addEventListener("change", () => {
+  editor.classList.remove("is-invalid");
+  td.classList.remove("is-invalid");
+
+  window.tableDatePicker
+    ?.position?.();
+});
 
     editor.addEventListener("blur", () => {
       finish(true, {
@@ -269,21 +407,41 @@
       });
     });
 
-    td.appendChild(editor);
+    if (
+  editorWrap &&
+  datePickerHitArea
+) {
+  editorWrap.appendChild(editor);
+  editorWrap.appendChild(
+    datePickerHitArea
+  );
 
-    requestAnimationFrame(() => {
-      editor.focus({
-        preventScroll: true,
-      });
+  td.appendChild(editorWrap);
+} else {
+  td.appendChild(editor);
+}
 
-      if (
-        editor instanceof HTMLInputElement &&
-        editor.type !== "date" &&
-        editor.type !== "time"
-      ) {
-        editor.select?.();
-      }
+requestAnimationFrame(() => {
+  editor.focus({
+    preventScroll: true,
+  });
+
+  if (editor.type === "date") {
+    window.tableDatePicker?.open?.({
+      input: editor,
+      anchor: td,
     });
+
+    return;
+  }
+
+  if (
+    editor instanceof HTMLInputElement &&
+    editor.type !== "time"
+  ) {
+    editor.select?.();
+  }
+});
 
     return true;
   }

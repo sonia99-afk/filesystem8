@@ -1,0 +1,227 @@
+/* =========================
+   Floating table date picker
+   ========================= */
+
+.table-date-picker-popup {
+  position: fixed;
+  z-index: 10000;
+
+  width: 276px;
+  box-sizing: border-box;
+
+  padding: 10px;
+
+  border: 1px solid #cfcfcf;
+  border-radius: 8px;
+
+  background: #fff;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.16);
+
+  font-family: inherit;
+  font-size: 13px;
+
+  user-select: none;
+}
+
+.table-date-picker-header {
+  display: grid;
+  grid-template-columns: 30px 1fr 30px;
+  align-items: center;
+
+  margin-bottom: 8px;
+}
+
+.table-date-picker-title {
+  text-align: center;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table-date-picker-nav {
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+
+  background: transparent;
+
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.table-date-picker-nav:hover {
+  background: #eeeeee;
+}
+
+.table-date-picker-weekdays,
+.table-date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.table-date-picker-weekdays {
+  margin-bottom: 3px;
+}
+
+.table-date-picker-weekday {
+  padding: 3px 0;
+
+  text-align: center;
+
+  color: #777;
+  font-size: 11px;
+}
+
+.table-date-picker-day {
+  width: 34px;
+  height: 30px;
+
+  justify-self: center;
+
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+
+  background: transparent;
+
+  font: inherit;
+
+  cursor: pointer;
+}
+
+.table-date-picker-day:hover {
+  background: #eeeeee;
+}
+
+.table-date-picker-day.is-outside-month {
+  color: #aaaaaa;
+}
+
+.table-date-picker-day.is-today {
+  box-shadow:
+    inset 0 0 0 1px #777;
+}
+
+.table-date-picker-day.is-selected {
+  background: #222;
+  color: #fff;
+}
+
+.table-date-picker-day.is-selected:hover {
+  background: #222;
+}
+
+.table-date-picker-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+
+  margin-top: 8px;
+  padding-top: 8px;
+
+  border-top: 1px solid #e2e2e2;
+}
+
+.table-date-picker-footer-btn {
+  padding: 5px 7px;
+
+  border: 0;
+  border-radius: 5px;
+
+  background: transparent;
+
+  font: inherit;
+  color: #555;
+
+  cursor: pointer;
+}
+
+.table-date-picker-footer-btn:hover {
+  background: #eeeeee;
+  color: #000;
+}
+
+/*
+  Прячем кнопку нативного календаря Chromium,
+  чтобы случайно не открывались сразу два виджета.
+*/
+.structure-table
+.table-direct-cell
+.table-cell-input-editor[type="date"]
+::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+  Оставляем существующую браузерную
+  иконку календаря видимой.
+
+  pointer-events: none передаёт нажатие
+  самому input, где его перехватывает наш JS.
+*/
+.structure-table
+.table-direct-cell
+.table-cell-input-editor[type="date"]
+::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  pointer-events: none;
+  cursor: pointer;
+}
+
+/*
+  Обёртка нужна только для размещения
+  прозрачной зоны над нативной иконкой.
+*/
+.table-direct-date-editor-wrap {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+
+  box-sizing: border-box;
+}
+
+.table-direct-date-editor-wrap
+.table-cell-input-editor[type="date"] {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  box-sizing: border-box;
+}
+
+/*
+  Прозрачная кнопка лежит поверх правой части input,
+  где браузер показывает календарную иконку.
+*/
+.table-direct-date-picker-hit-area {
+  position: absolute;
+
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: 2;
+
+  width: 36px;
+
+  padding: 0;
+  margin: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+}

@@ -1,20 +1,25 @@
 // table/table_tab_navigation.js
-// Tab-навигация внутри выбранной ячейки таблицы.
+// Навигация по внутренним элементам выбранной ячейки.
 //
 // Поведение:
-// - Tab не уводит фокус из таблицы сразу;
-// - если в выбранной ячейке есть кнопки/input/select — Tab ходит по ним;
-// - если фокусируемых элементов нет — пробуем открыть редактор ячейки;
-// - Shift+Tab ходит в обратную сторону.
+// - Tab / Shift+Tab продолжают ходить по элементам внутри ячейки;
+// - ArrowRight переходит к следующему внутреннему элементу;
+// - ArrowLeft переходит к предыдущему внутреннему элементу;
+// - стрелки не запускают другие действия и не двигают ячейку;
+// - Escape возвращает фокус на саму выбранную ячейку;
+// - в обычных текстовых редакторах стрелки продолжают двигать курсор.
 
 (function () {
   if (typeof window === "undefined") return;
 
   function getSelectedTableCell() {
     const host = document.getElementById("tree");
+
     if (!host) return null;
 
-    return host.querySelector("td.table-cell-selected");
+    return host.querySelector(
+      "td.table-cell-selected"
+    );
   }
 
   function isVisibleFocusableElement(el) {
@@ -42,18 +47,92 @@
           "input:not([disabled]):not([type='hidden'])",
           "select:not([disabled])",
           "textarea:not([disabled])",
+          "a[href]",
+          "[role='button']",
           "[tabindex]:not([tabindex='-1'])",
         ].join(",")
       )
     ).filter(isVisibleFocusableElement);
   }
 
-  function focusInsideSelectedTableCell(td, reverse = false) {
+  /*
+    В обычном текстовом редакторе ArrowLeft и ArrowRight
+    нужны для движения текстового курсора.
+
+    Поэтому там их не перехватываем.
+
+    Date/time-input, select и кнопки текстовыми
+    редакторами здесь не считаются.
+  */
+  function isPlainTextEditingElement(el) {
+    if (!el) return false;
+
+    if (el.isContentEditable) {
+      return true;
+    }
+
+    const tag = String(
+      el.tagName || ""
+    ).toLowerCase();
+
+    if (tag === "textarea") {
+      return true;
+    }
+
+    if (tag !== "input") {
+      return false;
+    }
+
+    if (
+      el.classList.contains(
+        "table-duration-mask-editor"
+      )
+    ) {
+      return true;
+    }
+
+    const type = String(
+      el.type || "text"
+    ).toLowerCase();
+
+    return [
+  /*
+    Обычные текстовые поля:
+    стрелки двигают текстовый курсор.
+  */
+  "text",
+  "search",
+  "url",
+  "email",
+  "tel",
+  "password",
+  "number",
+
+  /*
+    Нативные date/time-поля:
+    ArrowLeft и ArrowRight переключают
+    день, месяц, год, часы и минуты.
+  */
+  "date",
+  "time",
+  "datetime-local",
+  "month",
+  "week",
+].includes(type);
+  }
+
+  function focusInsideSelectedTableCell(
+    td,
+    reverse = false
+  ) {
     if (!td) return false;
 
-    const items = getFocusableElementsInsideTableCell(td);
+    const items =
+      getFocusableElementsInsideTableCell(td);
 
-    if (!items.length) return false;
+    if (!items.length) {
+      return false;
+    }
 
     const active = document.activeElement;
     const currentIndex = items.indexOf(active);
@@ -61,11 +140,20 @@
     let nextIndex;
 
     if (currentIndex < 0) {
-      nextIndex = reverse ? items.length - 1 : 0;
+      nextIndex = reverse
+        ? items.length - 1
+        : 0;
     } else {
       nextIndex = reverse
-        ? (currentIndex - 1 + items.length) % items.length
-        : (currentIndex + 1) % items.length;
+        ? (
+            currentIndex -
+            1 +
+            items.length
+          ) % items.length
+        : (
+            currentIndex +
+            1
+          ) % items.length;
     }
 
     items[nextIndex].focus({
@@ -76,80 +164,302 @@
   }
 
   function isTableViewActive() {
-    const host = document.getElementById("tree");
+    const host =
+      document.getElementById("tree");
 
     return !!(
       host &&
       host.querySelector(".structure-table") &&
-      (!window.VIEW || window.currentView === window.VIEW.TABLE)
+      (
+        !window.VIEW ||
+        window.currentView === window.VIEW.TABLE
+      )
     );
   }
 
-  function handleTableCellTabNavigation(e) {
-    if (e.key !== "Tab") return;
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (!isTableViewActive()) return;
+  function stopInnerArrowNavigation(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation?.();
+  }
 
-    const host = document.getElementById("tree");
-    if (!host) return;
+  function restoreCellFocus(td) {
+    requestAnimationFrame(() => {
+      /*
+        Некоторые редакторы при Escape изменяют
+        содержимое ячейки. Поэтому сначала пробуем
+        получить актуальную выбранную ячейку.
+      */
+      const freshCell =
+        getSelectedTableCell() || td;
 
-    const active = document.activeElement;
+      if (
+        !freshCell ||
+        !document.body.contains(freshCell)
+      ) {
+        return;
+      }
 
-    /*
-      Если фокус сейчас на кнопках вне таблицы —
-      не мешаем обычному Tab.
-    */
-    if (active && active !== document.body && !host.contains(active)) {
-      return;
+      window.tableCellNav?.selectCell?.(
+        freshCell,
+        {
+          focus: true,
+          scroll: false,
+        }
+      );
+    });
+  }
+
+  function handleInnerArrowNavigation(
+    e,
+    selectedCell,
+    active
+  ) {
+    if (
+      e.key !== "ArrowLeft" &&
+      e.key !== "ArrowRight"
+    ) {
+      return false;
     }
 
-    const selectedCell = getSelectedTableCell();
-    if (!selectedCell) return;
+    /*
+      Стрелки работают как внутренняя навигация
+      только после погружения в ячейку.
+
+      Пока фокус находится на самой td,
+      обычная навигация таблицы не меняется.
+    */
+    if (
+      !active ||
+      active === selectedCell ||
+      !selectedCell.contains(active)
+    ) {
+      return false;
+    }
+
+    /*
+      В текстовых полях сохраняем стандартное
+      движение курсора влево и вправо.
+    */
+    if (isPlainTextEditingElement(active)) {
+      return false;
+    }
+
+    /*
+      Событие полностью останавливаем до того,
+      как его смогут получить:
+
+      - кнопка;
+      - date/time input;
+      - выпадающий список;
+      - обработчики хоткеев таблицы;
+      - навигация между ячейками.
+    */
+    stopInnerArrowNavigation(e);
+
+    focusInsideSelectedTableCell(
+      selectedCell,
+      e.key === "ArrowLeft"
+    );
+
+    return true;
+  }
+
+  function handleEscapeFromInnerControl(
+    e,
+    selectedCell,
+    active
+  ) {
+    if (e.key !== "Escape") {
+      return false;
+    }
+
+    if (
+      !active ||
+      active === selectedCell ||
+      !selectedCell.contains(active)
+    ) {
+      return false;
+    }
+
+    /*
+      Не вызываем stopImmediatePropagation.
+
+      Сначала свой Escape сможет обработать сам
+      редактор: закрыть dropdown, отменить ввод,
+      убрать is-editing и так далее.
+
+      После этого гарантированно возвращаем фокус
+      на выбранную ячейку.
+    */
+    e.preventDefault();
+
+    restoreCellFocus(selectedCell);
+
+    return true;
+  }
+
+  function handleTableCellTabNavigation(
+    e,
+    selectedCell
+  ) {
+    if (e.key !== "Tab") {
+      return false;
+    }
+
+    if (
+      e.ctrlKey ||
+      e.metaKey ||
+      e.altKey
+    ) {
+      return false;
+    }
 
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation?.();
 
-    if (focusInsideSelectedTableCell(selectedCell, e.shiftKey)) {
-      return;
+    if (
+      focusInsideSelectedTableCell(
+        selectedCell,
+        e.shiftKey
+      )
+    ) {
+      return true;
     }
 
     /*
-      Если в ячейке пока нет фокусируемых элементов,
+      Если в ячейке пока нет внутренних элементов,
       пробуем открыть её редактор.
     */
-    const opened = window.tableCellEditors?.startEdit?.(selectedCell);
+    const opened =
+      window.tableCellEditors
+        ?.startEdit?.(selectedCell);
 
-    if (!opened) return;
+    if (!opened) {
+      return true;
+    }
 
     requestAnimationFrame(() => {
-      const freshSelectedCell = getSelectedTableCell() || selectedCell;
+      const freshSelectedCell =
+        getSelectedTableCell() ||
+        selectedCell;
 
-      focusInsideSelectedTableCell(freshSelectedCell, e.shiftKey);
+      focusInsideSelectedTableCell(
+        freshSelectedCell,
+        e.shiftKey
+      );
     });
+
+    return true;
   }
 
+  function handleTableCellInnerNavigation(e) {
+    if (!isTableViewActive()) return;
 
-function init() {
-  if (document.__tableCellTabNavigationBound) return;
+    /*
+      Модифицированные стрелки могут быть
+      отдельными хоткеями. Их здесь не трогаем.
+    */
+    if (
+      e.ctrlKey ||
+      e.metaKey ||
+      e.altKey ||
+      e.shiftKey
+    ) {
+      return;
+    }
 
-  document.__tableCellTabNavigationBound = true;
+    const host =
+      document.getElementById("tree");
 
-  document.addEventListener(
-    "keydown",
-    handleTableCellTabNavigation,
-    true
-  );
-}
+    if (!host) return;
+
+    const active = document.activeElement;
+
+    /*
+      Не вмешиваемся в элементы интерфейса,
+      расположенные за пределами таблицы.
+    */
+    if (
+      active &&
+      active !== document.body &&
+      !host.contains(active)
+    ) {
+      return;
+    }
+
+    const selectedCell =
+      getSelectedTableCell();
+
+    if (!selectedCell) return;
+
+    if (
+      handleEscapeFromInnerControl(
+        e,
+        selectedCell,
+        active
+      )
+    ) {
+      return;
+    }
+
+    if (
+      handleInnerArrowNavigation(
+        e,
+        selectedCell,
+        active
+      )
+    ) {
+      return;
+    }
+
+    handleTableCellTabNavigation(
+      e,
+      selectedCell
+    );
+  }
+
+  function init() {
+    if (
+      document
+        .__tableCellTabNavigationBound
+    ) {
+      return;
+    }
+
+    document
+      .__tableCellTabNavigationBound = true;
+
+    /*
+      Capture нужен обязательно.
+
+      Так ArrowLeft / ArrowRight будут остановлены
+      раньше обработчиков конкретной кнопки,
+      редактора и общей навигации таблицы.
+    */
+    document.addEventListener(
+      "keydown",
+      handleTableCellInnerNavigation,
+      true
+    );
+  }
 
   window.tableTabNavigation = {
     init,
-    getSelectedCell: getSelectedTableCell,
-    getFocusableElementsInsideCell: getFocusableElementsInsideTableCell,
-    focusInsideCell: focusInsideSelectedTableCell,
+
+    getSelectedCell:
+      getSelectedTableCell,
+
+    getFocusableElementsInsideCell:
+      getFocusableElementsInsideTableCell,
+
+    focusInsideCell:
+      focusInsideSelectedTableCell,
   };
 
-  window.ensureTableCellTabNavigation = init;
+  window.ensureTableCellTabNavigation =
+    init;
 
   init();
 })();

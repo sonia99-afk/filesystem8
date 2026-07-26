@@ -14,7 +14,8 @@
 (function () {
   if (typeof window === "undefined") return;
 
-  const VERTICAL_BUFFER_ROWS = 3;
+  const VERTICAL_BUFFER_ROWS = 2;
+  const HORIZONTAL_EDGE_GAP = 10;
 
   let scrollRaf = null;
   let scrollRequested = false;
@@ -85,6 +86,309 @@
 
     return document.querySelector(".main");
   }
+
+const horizontalScrollLocks = new WeakMap();
+
+/*
+  Полностью замораживает горизонтальную позицию
+  контейнера на всё время редактирования ячейки.
+
+  Позиция восстанавливается:
+  - сразу при попытке прокрутки;
+  - перед каждым кадром браузера.
+
+  Благодаря этому контейнер не успевает визуально
+  сдвинуться даже при быстрых или зажатых клавишах.
+*/
+function lockHorizontalPosition(cell) {
+  const container = findHorizontalScrollContainer(cell);
+
+  if (!container) {
+    return function () {};
+  }
+
+  let state = horizontalScrollLocks.get(container);
+
+  if (!state) {
+    const getNow = () => {
+      if (
+        typeof performance !== "undefined" &&
+        typeof performance.now === "function"
+      ) {
+        return performance.now();
+      }
+
+      return Date.now();
+    };
+
+    state = {
+      scrollLeft: container.scrollLeft,
+      count: 0,
+      restoring: false,
+      rafId: null,
+
+      /*
+        До этого момента прокрутка считается
+        ручным действием пользователя.
+      */
+      userScrollUntil: 0,
+
+      /*
+        Используется при перетаскивании
+        горизонтальной полосы прокрутки.
+      */
+      draggingHorizontalScrollbar: false,
+
+      previousScrollBehavior:
+        container.style.scrollBehavior,
+
+      previousOverflowAnchor:
+        container.style.overflowAnchor,
+
+      previousOverscrollBehaviorX:
+        container.style.overscrollBehaviorX,
+
+      restore: null,
+      onScroll: null,
+      onWheel: null,
+      onPointerDown: null,
+      onPointerUp: null,
+      tick: null,
+    };
+
+    state.allowUserScrollFor = function (duration = 200) {
+      state.userScrollUntil = Math.max(
+        state.userScrollUntil,
+        getNow() + duration
+      );
+    };
+
+    state.isUserScrollActive = function () {
+      return (
+        state.draggingHorizontalScrollbar ||
+        getNow() < state.userScrollUntil
+      );
+    };
+
+    state.restore = function restoreHorizontalPosition() {
+      if (!container.isConnected) return;
+      if (state.restoring) return;
+
+      /*
+        При ручной прокрутке не возвращаем старую позицию,
+        а запоминаем выбранное пользователем положение.
+      */
+      if (state.isUserScrollActive()) {
+        state.scrollLeft = container.scrollLeft;
+        return;
+      }
+
+      if (
+        Math.abs(
+          container.scrollLeft - state.scrollLeft
+        ) < 0.1
+      ) {
+        return;
+      }
+
+      state.restoring = true;
+      container.scrollLeft = state.scrollLeft;
+      state.restoring = false;
+    };
+
+    state.onScroll = function onLockedHorizontalScroll() {
+      if (state.isUserScrollActive()) {
+        state.scrollLeft = container.scrollLeft;
+        return;
+      }
+
+      state.restore();
+    };
+
+    /*
+      Горизонтальный тачпад или Shift + колесо мыши.
+    */
+    state.onWheel = function onHorizontalWheel(e) {
+      const hasHorizontalMovement =
+        Math.abs(Number(e.deltaX) || 0) > 0.01;
+
+      if (
+        hasHorizontalMovement ||
+        e.shiftKey
+      ) {
+        state.allowUserScrollFor(240);
+      }
+    };
+
+    /*
+      При нажатии непосредственно на контейнер
+      разрешаем перетаскивание его полосы прокрутки.
+
+      Нажатие на кнопку или ячейку сюда не попадёт,
+      поскольку e.target будет внутренним элементом.
+    */
+    state.onPointerDown = function onContainerPointerDown(e) {
+      if (e.target !== container) return;
+
+      state.draggingHorizontalScrollbar = true;
+      state.allowUserScrollFor(1000);
+    };
+
+    state.onPointerUp = function onContainerPointerUp() {
+      if (!state.draggingHorizontalScrollbar) return;
+
+      /*
+        Сохраняем конечную позицию, выбранную мышью.
+      */
+      state.scrollLeft = container.scrollLeft;
+      state.draggingHorizontalScrollbar = false;
+      state.allowUserScrollFor(100);
+    };
+
+    state.tick = function keepHorizontalPositionFrozen() {
+      if (
+        !horizontalScrollLocks.has(container) ||
+        state.count <= 0 ||
+        !container.isConnected
+      ) {
+        state.rafId = null;
+        return;
+      }
+
+      if (state.isUserScrollActive()) {
+        state.scrollLeft = container.scrollLeft;
+      } else {
+        state.restore();
+      }
+
+      state.rafId = requestAnimationFrame(
+        state.tick
+      );
+    };
+
+    container.style.scrollBehavior = "auto";
+    container.style.overflowAnchor = "none";
+    container.style.overscrollBehaviorX = "none";
+
+    container.addEventListener(
+      "scroll",
+      state.onScroll,
+      {
+        passive: true,
+      }
+    );
+
+    container.addEventListener(
+      "wheel",
+      state.onWheel,
+      {
+        passive: true,
+      }
+    );
+
+    container.addEventListener(
+      "pointerdown",
+      state.onPointerDown,
+      true
+    );
+
+    window.addEventListener(
+      "pointerup",
+      state.onPointerUp,
+      true
+    );
+
+    window.addEventListener(
+      "pointercancel",
+      state.onPointerUp,
+      true
+    );
+
+    horizontalScrollLocks.set(container, state);
+
+    state.rafId = requestAnimationFrame(
+      state.tick
+    );
+  }
+
+  state.count += 1;
+  state.restore();
+
+  let released = false;
+
+  return function releaseHorizontalPosition() {
+    if (released) return;
+
+    released = true;
+
+    state.count = Math.max(
+      0,
+      state.count - 1
+    );
+
+    if (state.count > 0) return;
+
+    state.restore();
+
+    if (state.rafId !== null) {
+      cancelAnimationFrame(state.rafId);
+      state.rafId = null;
+    }
+
+    container.removeEventListener(
+      "scroll",
+      state.onScroll
+    );
+
+    container.removeEventListener(
+      "wheel",
+      state.onWheel
+    );
+
+    container.removeEventListener(
+      "pointerdown",
+      state.onPointerDown,
+      true
+    );
+
+    window.removeEventListener(
+      "pointerup",
+      state.onPointerUp,
+      true
+    );
+
+    window.removeEventListener(
+      "pointercancel",
+      state.onPointerUp,
+      true
+    );
+
+    container.style.scrollBehavior =
+      state.previousScrollBehavior;
+
+    container.style.overflowAnchor =
+      state.previousOverflowAnchor;
+
+    container.style.overscrollBehaviorX =
+      state.previousOverscrollBehaviorX;
+
+    horizontalScrollLocks.delete(container);
+  };
+}
+
+function isHorizontalPositionLocked(cellOrContainer) {
+  const container =
+    cellOrContainer?.classList?.contains("main")
+      ? cellOrContainer
+      : findHorizontalScrollContainer(
+          cellOrContainer
+        );
+
+  return !!(
+    container &&
+    horizontalScrollLocks.has(container)
+  );
+}
 
   function getClientViewport(element) {
     const rect = element.getBoundingClientRect();
@@ -241,24 +545,33 @@
       =========================================
     */
 
-    const horizontalViewport =
-      getClientViewport(horizontalContainer);
+const horizontalViewport =
+  getClientViewport(horizontalContainer);
 
-    const visibleLeft =
-      horizontalViewport.left;
+const visibleLeft =
+  horizontalViewport.left;
 
-    const visibleRight =
-      horizontalViewport.right;
+const visibleRight =
+  horizontalViewport.right;
 
-    let deltaX = 0;
+let deltaX = 0;
 
-    if (cellRect.left < visibleLeft) {
-      deltaX =
-        cellRect.left - visibleLeft;
-    } else if (cellRect.right > visibleRight) {
-      deltaX =
-        cellRect.right - visibleRight;
-    }
+/*
+  Автоскролл начинается только тогда,
+  когда ячейка действительно скрыта за краем.
+
+  После прокрутки оставляем дополнительный
+  отступ HORIZONTAL_EDGE_GAP от края экрана.
+*/
+if (cellRect.left < visibleLeft) {
+  deltaX =
+    cellRect.left -
+    (visibleLeft + HORIZONTAL_EDGE_GAP);
+} else if (cellRect.right > visibleRight) {
+  deltaX =
+    cellRect.right -
+    (visibleRight - HORIZONTAL_EDGE_GAP);
+}
 
     if (Math.abs(deltaY) >= 1) {
       verticalContainer.scrollTop =
@@ -267,12 +580,15 @@
         );
     }
 
-    if (Math.abs(deltaX) >= 1) {
-      horizontalContainer.scrollLeft =
-        Math.round(
-          horizontalContainer.scrollLeft + deltaX
-        );
-    }
+if (
+  !horizontalScrollLocks.has(horizontalContainer) &&
+  Math.abs(deltaX) >= 1
+) {
+  horizontalContainer.scrollLeft =
+    Math.round(
+      horizontalContainer.scrollLeft + deltaX
+    );
+}
   }
 
   function scrollCellIntoView(cell) {
@@ -307,9 +623,11 @@
     }
   }
 
-  window.tableAutoscroll = {
-    scrollCellIntoView,
-    scrollSelectedCellIntoView,
+window.tableAutoscroll = {
+  scrollCellIntoView,
+  scrollSelectedCellIntoView,
+  lockHorizontalPosition,
+  isHorizontalPositionLocked,
 
     cancel() {
       if (scrollRaf !== null) {

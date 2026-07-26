@@ -22,6 +22,7 @@
           "css/views/table/table_name_cell.css",
           "css/views/table/table_dropdown_cells.css",
           "css/views/table/table_datetime_cells.css",
+          "css/views/table/table_date_picker.css",
           "css/views/table/table_rich_text_cells.css",
           "css/views/table/table_upload_cells.css",
           "css/views/table/table_timer_cells.css",
@@ -37,6 +38,7 @@
 
           "table/table_dropdown_cells.js",
           "table/table_datetime_cells.js",
+          "table/table_date_picker.js",
           "table/table_direct_cells.js",
           "table/table_rich_text_cells.js",
           "table/table_builtin_cells.js",

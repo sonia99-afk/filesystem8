@@ -356,6 +356,32 @@
 
     const inputs = [];
 
+    let releaseHorizontalScrollLock = null;
+
+function lockHorizontalScroll() {
+  if (releaseHorizontalScrollLock) return;
+
+  const td = wrap.closest("td");
+
+  releaseHorizontalScrollLock =
+    window.tableAutoscroll
+      ?.lockHorizontalPosition?.(td) || null;
+}
+
+function unlockHorizontalScrollSoon() {
+  const release = releaseHorizontalScrollLock;
+
+  releaseHorizontalScrollLock = null;
+
+  if (typeof release !== "function") return;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      release();
+    });
+  });
+}
+
     function syncView() {
       config.items.forEach((item, index) => {
         const input = inputs[index];
@@ -392,6 +418,8 @@
       if (options.restoreFocus !== false) {
         restoreCellFocus();
       }
+
+      unlockHorizontalScrollSoon();
     }
 
     function markInvalid() {
@@ -445,6 +473,8 @@
       window.treeHasFocus = true;
 
       syncView();
+
+      lockHorizontalScroll();
 
       wrap.classList.add("is-editing");
 
