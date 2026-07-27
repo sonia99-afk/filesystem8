@@ -285,15 +285,37 @@ if (bReset) bReset.textContent = UI.labels.hotkeys.reset;
       backdrop.remove();
     });
 
-    modal.querySelector(".hk-save")?.addEventListener("click", () => {
-      backdrop.remove();
-      exitEditModeKeep();
-    });
+modal.querySelector(".hk-save")?.addEventListener("click", () => {
+  backdrop.remove();
 
-    modal.querySelector(".hk-discard")?.addEventListener("click", () => {
-      backdrop.remove();
-      exitEditModeDiscard();
-    });
+  /*
+    Сначала сохраняем изменения и выходим
+    из режима редактирования.
+  */
+  exitEditModeKeep();
+
+  /*
+    Затем полностью закрываем панель хоткеев.
+  */
+  window.hotkeysPanelController
+    ?.close?.();
+});
+
+modal.querySelector(".hk-discard")?.addEventListener("click", () => {
+  backdrop.remove();
+
+  /*
+    Сначала возвращаем предыдущие значения
+    и выходим из режима редактирования.
+  */
+  exitEditModeDiscard();
+
+  /*
+    Затем полностью закрываем панель хоткеев.
+  */
+  window.hotkeysPanelController
+    ?.close?.();
+});
 
     backdrop.addEventListener("click", (e) => {
       if (e.target === backdrop) {

@@ -10,45 +10,40 @@
 function toggle(id) {
   if (!id) return;
 
-  const wasCollapsed = collapsed.has(id);
+  const wasCollapsed =
+    collapsed.has(id);
 
-if (wasCollapsed) {
-  /*
-    Раскрываем объект, но активным
-    оставляем сам раскрываемый объект.
-  */
-  collapsed.delete(id);
-
-  selectedId = id;
-  treeHasFocus = true;
-
-  /*
-    В таблице сохраняем текущую колонку,
-    но активной оставляем строку родителя.
-  */
-  if (window.tableSelectedCell) {
-    window.tableSelectedCell = {
-      ...window.tableSelectedCell,
-      rowId: id,
-    };
-  }
-
-  } else {
+  if (wasCollapsed) {
     /*
-      Сворачиваем объект.
-      Выбранным остаётся сам сворачиваемый объект.
+      Раскрываем объект.
+
+      Активным становится сам объект,
+      который мы раскрыли.
     */
-    collapsed.add(id);
+    collapsed.delete(id);
 
     selectedId = id;
     treeHasFocus = true;
 
+    /*
+      В таблице сохраняем текущую колонку,
+      но переносим активность на строку
+      раскрываемого объекта.
+    */
     if (window.tableSelectedCell) {
       window.tableSelectedCell = {
         ...window.tableSelectedCell,
         rowId: id,
       };
     }
+  } else {
+    /*
+      Сворачиваем объект.
+
+      Текущий активный объект и текущую
+      активную ячейку не меняем.
+    */
+    collapsed.add(id);
   }
 
   render();

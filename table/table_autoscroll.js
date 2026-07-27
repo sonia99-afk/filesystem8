@@ -430,6 +430,62 @@ function isHorizontalPositionLocked(cellOrContainer) {
     );
   }
 
+  function getVisibleTableRows(table) {
+  if (!table) return [];
+
+  return Array.from(
+    table.querySelectorAll("tbody tr")
+  ).filter((row) => {
+    if (row.hidden || row.closest("[hidden]")) {
+      return false;
+    }
+
+    const style =
+      window.getComputedStyle(row);
+
+    if (
+      style.display === "none" ||
+      style.visibility === "hidden"
+    ) {
+      return false;
+    }
+
+    return (
+      row.getBoundingClientRect().height > 0
+    );
+  });
+}
+
+function getAdjacentRowsHeight(
+  rows,
+  currentIndex,
+  direction,
+  count
+) {
+  let totalHeight = 0;
+  let collectedRows = 0;
+
+  for (
+    let index = currentIndex + direction;
+    index >= 0 &&
+    index < rows.length &&
+    collectedRows < count;
+    index += direction
+  ) {
+    const rowRect =
+      rows[index].getBoundingClientRect();
+
+    if (rowRect.height <= 0) {
+      continue;
+    }
+
+    totalHeight += rowRect.height;
+    collectedRows += 1;
+  }
+
+  return totalHeight;
+}
+
   function performScroll() {
     scrollRaf = null;
 
@@ -488,34 +544,69 @@ function isHorizontalPositionLocked(cellOrContainer) {
     const visibleBottom =
       verticalViewport.bottom;
 
-    const row = cell.closest("tr");
-    const rowRect =
-      row?.getBoundingClientRect();
+      const row = cell.closest("tr");
 
-    const rowHeight = Math.max(
-      rowRect?.height || cellRect.height,
-      1
-    );
+const visibleRows =
+  getVisibleTableRows(table);
 
-    const requestedVerticalBuffer =
-      rowHeight * VERTICAL_BUFFER_ROWS;
+const currentRowIndex =
+  visibleRows.indexOf(row);
 
-    const visibleVerticalHeight = Math.max(
-      0,
-      visibleBottom - visibleTop
-    );
+/*
+  Для верхней границы считаем высоту
+  реальных строк над активной строкой.
+*/
+const requestedTopBuffer =
+  currentRowIndex >= 0
+    ? getAdjacentRowsHeight(
+        visibleRows,
+        currentRowIndex,
+        -1,
+        VERTICAL_BUFFER_ROWS
+      )
+    : 0;
 
-    const maxVerticalBuffer = Math.max(
-      0,
-      (
-        visibleVerticalHeight -
-        cellRect.height
-      ) / 2
-    );
+/*
+  Для нижней границы считаем высоту
+  реальных строк под активной строкой.
+*/
+const requestedBottomBuffer =
+  currentRowIndex >= 0
+    ? getAdjacentRowsHeight(
+        visibleRows,
+        currentRowIndex,
+        1,
+        VERTICAL_BUFFER_ROWS
+      )
+    : 0;
 
-const keyboardVerticalBuffer =
+const visibleVerticalHeight = Math.max(
+  0,
+  visibleBottom - visibleTop
+);
+
+/*
+  Не позволяем зонам сверху и снизу
+  полностью перекрыть активную строку,
+  если окно очень маленькое.
+*/
+const maxVerticalBuffer = Math.max(
+  0,
+  (
+    visibleVerticalHeight -
+    cellRect.height
+  ) / 2
+);
+
+const keyboardTopBuffer =
   Math.min(
-    requestedVerticalBuffer,
+    requestedTopBuffer,
+    maxVerticalBuffer
+  );
+
+const keyboardBottomBuffer =
+  Math.min(
+    requestedBottomBuffer,
     maxVerticalBuffer
   );
 
@@ -525,16 +616,21 @@ const mouseVerticalBuffer =
     maxVerticalBuffer
   );
 
-const verticalBuffer =
+const topBuffer =
   scrollMode === "mouse"
     ? mouseVerticalBuffer
-    : keyboardVerticalBuffer;
+    : keyboardTopBuffer;
 
-    const safeTop =
-      visibleTop + verticalBuffer;
+const bottomBuffer =
+  scrollMode === "mouse"
+    ? mouseVerticalBuffer
+    : keyboardBottomBuffer;
 
-    const safeBottom =
-      visibleBottom - verticalBuffer;
+const safeTop =
+  visibleTop + topBuffer;
+
+const safeBottom =
+  visibleBottom - bottomBuffer;
 
     let deltaY = 0;
 
