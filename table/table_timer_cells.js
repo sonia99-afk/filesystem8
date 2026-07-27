@@ -1146,6 +1146,7 @@ timeBtn.addEventListener("click", (e) => {
       "table-timer-countdown-btn table-timer-countdown-reset";
     resetBtn.textContent = "◀◀";
     resetBtn.title = "Сбросить остаток таймера";
+    resetBtn.disabled = Number(state.durationMs) <= 0;
 
     resetBtn.addEventListener("click", (e) => {
       e.preventDefault();

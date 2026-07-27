@@ -302,15 +302,15 @@
   function focusAdjacentCompositeDateTimeInput(
   active,
   reverse = false
-) {
-  if (
-    !(active instanceof HTMLInputElement) ||
-    !active.classList.contains(
-      "table-composite-datetime-input"
-    )
   ) {
-    return false;
-  }
+    if (
+      !(active instanceof HTMLInputElement) ||
+      !active.classList.contains(
+        "table-composite-datetime-input"
+      )
+    ) {
+      return false;
+    }
 
   const editor = active.closest(
     ".table-composite-datetime-editor"
@@ -371,6 +371,45 @@
   return true;
 }
 
+function handleCompositeDateTimeAltNavigation(e) {
+  if (
+    !e.altKey ||
+    e.ctrlKey ||
+    e.metaKey ||
+    e.shiftKey
+  ) {
+    return false;
+  }
+
+  if (
+    e.key !== "ArrowLeft" &&
+    e.key !== "ArrowRight"
+  ) {
+    return false;
+  }
+
+  const active =
+    document.activeElement;
+
+  const moved =
+    focusAdjacentCompositeDateTimeInput(
+      active,
+      e.key === "ArrowLeft"
+    );
+
+  if (!moved) {
+    return false;
+  }
+
+  /*
+    Не даём Alt+ArrowLeft запустить
+    переход браузера назад.
+  */
+  stopInnerArrowNavigation(e);
+
+  return true;
+}
+
 function handleTableCellTabNavigation(
   e,
   selectedCell
@@ -379,89 +418,46 @@ function handleTableCellTabNavigation(
     return false;
   }
 
-  if (
-    e.ctrlKey ||
-    e.metaKey ||
-    e.altKey
-  ) {
-    return false;
-  }
-
-  const active =
-    document.activeElement;
-
   /*
-    Для составных date/time-полей
-    не используем нативную Tab-навигацию
-    браузера между внутренними секциями.
+    В таблице полностью отключаем:
+    - Tab;
+    - Shift + Tab.
+
+    Фокус никуда не перемещается,
+    внутренние элементы не переключаются.
   */
-  if (
-    focusAdjacentCompositeDateTimeInput(
-      active,
-      e.shiftKey
-    )
-  ) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation?.();
-
-    return true;
-  }
-
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation?.();
-
-  if (
-    focusInsideSelectedTableCell(
-      selectedCell,
-      e.shiftKey
-    )
-  ) {
-    return true;
-  }
-
-  /*
-    Если в ячейке пока нет внутренних элементов,
-    пробуем открыть её редактор.
-  */
-  const opened =
-    window.tableCellEditors
-      ?.startEdit?.(selectedCell);
-
-  if (!opened) {
-    return true;
-  }
-
-  requestAnimationFrame(() => {
-    const freshSelectedCell =
-      getSelectedTableCell() ||
-      selectedCell;
-
-    focusInsideSelectedTableCell(
-      freshSelectedCell,
-      e.shiftKey
-    );
-  });
 
   return true;
 }
 
   function handleTableCellInnerNavigation(e) {
-    if (!isTableViewActive()) return;
+  if (!isTableViewActive()) return;
 
-    /*
-      Модифицированные стрелки могут быть
-      отдельными хоткеями. Их здесь не трогаем.
-    */
-    if (
-      e.ctrlKey ||
-      e.metaKey ||
-      e.altKey ||
-      e.shiftKey
-    ) {
-      return;
-    }
+  /*
+    Внутри составной date/time-ячейки
+    Alt+Left и Alt+Right переключают поля.
+  */
+  if (
+    handleCompositeDateTimeAltNavigation(e)
+  ) {
+    return;
+  }
+
+  /*
+    Остальные сочетания с модификаторами
+    оставляем общей системе хоткеев.
+  */
+  if (
+    e.ctrlKey ||
+    e.metaKey ||
+    e.altKey ||
+    e.shiftKey
+  ) {
+    return;
+  }
 
     const host =
       document.getElementById("tree");

@@ -437,22 +437,13 @@ function renderSchemaView() {
   if (rid) startRename(rid);
 }
 
-// function render() {
-//   if (currentView === VIEW.HIERARCHY) {
-//     if (hierarchyOrientation === HIERARCHY_ORIENTATION.HORIZONTAL) {
-//       window.renderHierarchyHorizontalView?.();
-//     } else {
-//       window.renderHierarchyView?.();
-//     }
-  
-//     syncHierarchyOrientationButtons();
-//     return;
-//   }
 
-//   renderSchemaView();
-// }
+function render(options = {}) {
+  const scrollMode =
+    options?.scrollMode === "mouse"
+      ? "mouse"
+      : "keyboard";
 
-function render() {
   ensureSelectedVisible();
   updateDirectionButtons();
 
@@ -464,7 +455,10 @@ function render() {
     }
 
     syncViewOrientationButtons();
-    window.schemaAutoscroll?.scrollSelectedIntoView?.();
+    window.schemaAutoscroll
+  ?.scrollSelectedIntoView?.({
+    mode: scrollMode,
+  });
     return;
   }
 
@@ -476,13 +470,19 @@ function render() {
     }
 
     syncViewOrientationButtons();
-    window.schemaAutoscroll?.scrollSelectedIntoView?.();
+    window.schemaAutoscroll
+  ?.scrollSelectedIntoView?.({
+    mode: scrollMode,
+  });
     return;
   }
 
   if (currentView === VIEW.LIST) {
     window.renderListView?.();
-    window.schemaAutoscroll?.scrollSelectedIntoView?.();
+    window.schemaAutoscroll
+  ?.scrollSelectedIntoView?.({
+    mode: scrollMode,
+  });
     return;
   }
 
@@ -493,7 +493,10 @@ function render() {
   }
 
   renderSchemaView();
-  window.schemaAutoscroll?.scrollSelectedIntoView?.();
+  window.schemaAutoscroll
+  ?.scrollSelectedIntoView?.({
+    mode: scrollMode,
+  });
 }
 
 function isTreeLocked() {
@@ -588,14 +591,32 @@ function handleRowMouseHotkeys(e, n, baseToken) {
     return true;
   }
 
-  if (isMouseHotkey(e, "navClick", baseToken)) {
-    e.preventDefault();
-    e.stopPropagation();
-    selectedId = n.id;
-    treeHasFocus = true;
-    render();
-    return true;
-  }
+if (isMouseHotkey(e, "navClick", baseToken)) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  selectedId = n.id;
+  treeHasFocus = true;
+
+  /*
+    Сначала обновляем структуру.
+    Аргументы render могут теряться в обёртках
+    модулей мультивыделения.
+  */
+  render();
+
+  /*
+    Затем напрямую запрашиваем мышиный автоскролл.
+    Он получит приоритет над уже запланированным
+    клавиатурным запросом.
+  */
+  window.schemaAutoscroll
+    ?.scrollSelectedIntoView?.({
+      mode: "mouse",
+    });
+
+  return true;
+}
 
   return false;
 }

@@ -154,9 +154,18 @@ function selectCell(td, options = {}) {
     td.focus({ preventScroll: true });
   }
 
-  if (options.scroll !== false) {
-    window.tableAutoscroll?.scrollCellIntoView?.(td);
-  }
+if (options.scroll !== false) {
+  window.tableAutoscroll
+    ?.scrollCellIntoView?.(
+      td,
+      {
+        mode:
+          options.scrollMode === "mouse"
+            ? "mouse"
+            : "keyboard",
+      }
+    );
+}
 }
 
   function findInitialCell() {
@@ -465,15 +474,18 @@ function handleCellNavHotkey(e, td) {
   return false;
 }
 
-
 function handleCellKeydown(e) {
   if (!isTableViewActive()) return;
 
-  const td = e.target.closest?.(`td.${CELL_CLASS}`);
+  const td = e.target.closest?.(
+    `td.${CELL_CLASS}`
+  );
+
   if (!td) return;
 
   /*
-    Вся табличная навигация проходит через одно место.
+    Вся табличная навигация проходит
+    через одно место.
   */
   if (handleCellNavHotkey(e, td)) {
     return;
@@ -481,7 +493,8 @@ function handleCellKeydown(e) {
 
   /*
     Активация и редактирование ячейки используют
-    назначаемое действие rename. F2 остаётся запасным.
+    назначаемое действие rename.
+    F2 остаётся запасным.
   */
   if (isCellActivateHotkey(e)) {
     stopTableCellHotkey(e);
@@ -495,6 +508,7 @@ function handleCellKeydown(e) {
     td.blur();
   }
 }
+
 
   function bindCell(td, rowId, rowIndex, colIndex) {
     td.classList.add(CELL_CLASS);
@@ -510,10 +524,11 @@ td.addEventListener("click", (e) => {
 
   e.stopPropagation();
 
-  selectCell(td, {
-    focus: true,
-    scroll: true,
-  });
+selectCell(td, {
+  focus: true,
+  scroll: true,
+  scrollMode: "mouse",
+});
 });
 
 td.addEventListener("dblclick", (e) => {
@@ -521,10 +536,11 @@ td.addEventListener("dblclick", (e) => {
 
   e.stopPropagation();
 
-  selectCell(td, {
-    focus: true,
-    scroll: true,
-  });
+selectCell(td, {
+  focus: true,
+  scroll: true,
+  scrollMode: "mouse",
+});
 
   startEditCell(td);
 });

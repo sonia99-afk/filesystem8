@@ -12,60 +12,27 @@ function toggle(id) {
 
   const wasCollapsed = collapsed.has(id);
 
-  if (wasCollapsed) {
-    /*
-      Раскрываем объект.
-    */
-    collapsed.delete(id);
+if (wasCollapsed) {
+  /*
+    Раскрываем объект, но активным
+    оставляем сам раскрываемый объект.
+  */
+  collapsed.delete(id);
 
-    const found =
-      typeof findWithParent === "function"
-        ? findWithParent(root, id)
-        : null;
+  selectedId = id;
+  treeHasFocus = true;
 
-    const children = found?.node?.children || [];
+  /*
+    В таблице сохраняем текущую колонку,
+    но активной оставляем строку родителя.
+  */
+  if (window.tableSelectedCell) {
+    window.tableSelectedCell = {
+      ...window.tableSelectedCell,
+      rowId: id,
+    };
+  }
 
-    /*
-      Выбираем первый доступный дочерний объект.
-
-      isSelectableVisibleId дополнительно исключает:
-      - скрытые боковой кнопкой объекты;
-      - скрытые отметкой объекты;
-      - недоступные элементы в режиме фокуса.
-    */
-    const firstOpenedChild =
-      children.find((child) => {
-        if (
-          typeof isSelectableVisibleId === "function"
-        ) {
-          return isSelectableVisibleId(child.id);
-        }
-
-        return true;
-      }) || null;
-
-    if (firstOpenedChild) {
-      selectedId = firstOpenedChild.id;
-      treeHasFocus = true;
-
-      /*
-        В таблице переносим активную ячейку
-        в ту же колонку первой раскрытой строки.
-      */
-      if (window.tableSelectedCell) {
-        window.tableSelectedCell = {
-          ...window.tableSelectedCell,
-          rowId: firstOpenedChild.id,
-        };
-      }
-    } else {
-      /*
-        Если все дочерние объекты скрыты,
-        выбранным остаётся сам родитель.
-      */
-      selectedId = id;
-      treeHasFocus = true;
-    }
   } else {
     /*
       Сворачиваем объект.

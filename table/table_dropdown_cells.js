@@ -481,6 +481,19 @@ function focusMenuItem(delta = 0) {
         btn.dataset.value = option.value;
         btn.textContent = option.label;
 
+        const isSelected =
+          option.value === currentValue;
+
+        btn.classList.toggle(
+          "is-selected",
+          isSelected
+        );
+
+        btn.setAttribute(
+          "aria-selected",
+          isSelected ? "true" : "false"
+        );
+
         btn.setAttribute(
           "role",
           "option"
@@ -563,24 +576,29 @@ function focusMenuItem(delta = 0) {
       }
     }
 
-    function openMenu() {
-      fillMenu();
+function openMenu() {
+  fillMenu();
 
-      isMenuOpen = true;
-      menu.hidden = false;
+  isMenuOpen = true;
+  menu.hidden = false;
 
-      wrap.classList.add(
-        "is-menu-open"
-      );
+  wrap.classList.add(
+    "is-menu-open"
+  );
 
-      /*
-        После появления меню в DOM
-        всегда фокусируем первый пункт.
-      */
-      requestAnimationFrame(() => {
-        focusFirstMenuOption();
-      });
-    }
+  /*
+    При открытии ни один пункт списка
+    не должен быть активным.
+
+    Фокус оставляем на кнопке списка.
+    Первое ArrowDown активирует первый пункт.
+  */
+  requestAnimationFrame(() => {
+    trigger.focus({
+      preventScroll: true,
+    });
+  });
+}
 
     function openEditor(e) {
       if (e) {

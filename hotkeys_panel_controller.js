@@ -289,17 +289,36 @@ function closePanel() {
     updatePanelAccessibility(false);
   }
 
-  function handleKeyDown(e) {
-    if (!isModalMode()) return;
-    if (!isModalOpen()) return;
+function handleKeyDown(e) {
+  if (!isModalMode()) return;
+  if (!isModalOpen()) return;
+  if (e.key !== "Escape") return;
 
-    if (e.key === "Escape") {
-      e.preventDefault();
-      e.stopPropagation();
+  /*
+    Пока редактируется конкретная ячейка хоткея,
+    не закрываем модальное окно.
 
-      closeModal();
-    }
+    Событие продолжит идти до hotkeys_editor.js,
+    где Escape отменит редактирование ячейки.
+  */
+  const editingHotkeyCell =
+    document.querySelector(
+      "td[data-action].editing"
+    );
+
+  if (editingHotkeyCell) {
+    return;
   }
+
+  /*
+    Если ячейка уже не редактируется,
+    следующий Escape закрывает модальное окно.
+  */
+  e.preventDefault();
+  e.stopPropagation();
+
+  closeModal();
+}
 
   function handleOutsideSidebarClick(e) {
   /*

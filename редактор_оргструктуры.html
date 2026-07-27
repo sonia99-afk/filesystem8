@@ -416,7 +416,7 @@
   <td rowspan="8">Выбор</td>
 
   <td rowspan="2">По списку</td>
-  <td>Вверх</td>
+  <td>К началу</td>
   <td rowspan="2"></td>
 
   <td
@@ -434,7 +434,7 @@
 </tr>
 
 <tr data-selection-view="schema">
-  <td>Вниз</td>
+  <td>К концу</td>
 
   <td
     data-action="navDown"
@@ -447,7 +447,7 @@
   class="hotkeys-view-unavailable"
 >
   <td rowspan="2">По свойствам</td>
-  <td>Вправо</td>
+  <td>К концу</td>
   <td rowspan="2"></td>
 
   <td class="hotkeys-disabled-cell">
@@ -459,7 +459,7 @@
   data-selection-view="schema"
   class="hotkeys-view-unavailable"
 >
-  <td>Влево</td>
+  <td>К началу</td>
 
   <td class="hotkeys-disabled-cell">
     недоступно
@@ -468,7 +468,7 @@
 
 <tr data-selection-view="schema">
   <td rowspan="2">По уровню</td>
-  <td>Вверх</td>
+  <td>К внешнему</td>
 
   <td rowspan="2">
     Переход к предыдущему/следующему объекту того же уровня
@@ -481,7 +481,7 @@
 </tr>
 
 <tr data-selection-view="schema">
-  <td>Вниз</td>
+  <td>К вложенному</td>
 
   <td
     data-action="levelNavDown"
@@ -491,7 +491,7 @@
 
 <tr data-selection-view="schema">
   <td rowspan="2">По ветке</td>
-  <td>Влево</td>
+  <td>К началу</td>
 
   <td rowspan="2">
     Переход к родителю / первому ребёнку в текущей ветке
@@ -504,7 +504,7 @@
 </tr>
 
 <tr data-selection-view="schema">
-  <td>Вправо</td>
+  <td>К концу</td>
 
   <td
     data-action="branchNavRight"
@@ -521,7 +521,7 @@
   <td rowspan="8">Выбор</td>
 
   <td rowspan="2">По списку</td>
-  <td>Вверх</td>
+  <td>К началу</td>
   <td rowspan="2"></td>
 
   <td
@@ -545,7 +545,7 @@
 </tr>
 
 <tr data-selection-view="vertical" hidden>
-  <td>Вниз</td>
+  <td>К концу</td>
 
   <td
     data-action="verticalListDown"
@@ -559,7 +559,7 @@
   hidden
 >
   <td rowspan="2">По свойствам</td>
-  <td>Вправо</td>
+  <td>К концу</td>
   <td rowspan="2"></td>
 
   <td class="hotkeys-disabled-cell">
@@ -572,7 +572,7 @@
   class="hotkeys-view-unavailable"
   hidden
 >
-  <td>Влево</td>
+  <td>К началу</td>
 
   <td class="hotkeys-disabled-cell">
     недоступно
@@ -581,7 +581,7 @@
 
 <tr data-selection-view="vertical" hidden>
   <td rowspan="2">По уровню</td>
-  <td>Влево</td>
+  <td>К внешнему</td>
 
   <td rowspan="2">
     Переход к предыдущему/следующему
@@ -595,7 +595,7 @@
 </tr>
 
 <tr data-selection-view="vertical" hidden>
-  <td>Вправо</td>
+  <td>К вложенному</td>
 
   <td
     data-action="verticalLevelRight"
@@ -605,7 +605,7 @@
 
 <tr data-selection-view="vertical" hidden>
   <td rowspan="2">По ветке</td>
-  <td>Вверх</td>
+  <td>К началу</td>
 
   <td rowspan="2">
     Переход к родителю / первому ребёнку
@@ -619,7 +619,7 @@
 </tr>
 
 <tr data-selection-view="vertical" hidden>
-  <td>Вниз</td>
+  <td>К концу</td>
 
   <td
     data-action="verticalBranchDown"
@@ -636,7 +636,7 @@
   <td rowspan="8">Выбор</td>
 
   <td rowspan="2">По списку</td>
-  <td>Вверх</td>
+  <td>К началу</td>
   <td rowspan="2"></td>
 
   <td
@@ -654,7 +654,7 @@
 </tr>
 
 <tr data-selection-view="table" hidden>
-  <td>Вниз</td>
+  <td>К концу</td>
 
   <td
     data-action="tableListDown"
@@ -666,23 +666,24 @@
 
 <tr data-selection-view="table" hidden>
   <td rowspan="2">По свойствам</td>
-  <td>Вправо</td>
+  <td>К началу</td>
   <td rowspan="2"></td>
-
-  <td
-    data-action="tablePropertyRight"
-    data-fixed-key="ArrowRight"
-  ></td>
-</tr>
-
-<tr data-selection-view="table" hidden>
-  <td>Влево</td>
 
   <td
     data-action="tablePropertyLeft"
     data-fixed-key="ArrowLeft"
   ></td>
 </tr>
+
+<tr data-selection-view="table" hidden>
+  <td>К концу</td>
+  <td
+    data-action="tablePropertyRight"
+    data-fixed-key="ArrowRight"
+  ></td>
+</tr>
+  
+  
 
 <!-- По уровню — недоступно в таблице -->
 
@@ -692,7 +693,7 @@
   hidden
 >
   <td rowspan="2">По уровню</td>
-  <td>Вверх</td>
+  <td>К внешнему</td>
 
   <td rowspan="2">
     Недоступно в табличном отображении
@@ -708,7 +709,7 @@
   class="hotkeys-view-unavailable"
   hidden
 >
-  <td>Вниз</td>
+  <td>К вложенному</td>
 
   <td class="hotkeys-disabled-cell">
     недоступно
@@ -723,7 +724,7 @@
   hidden
 >
   <td rowspan="2">По ветке</td>
-  <td>Влево</td>
+  <td>К началу</td>
 
   <td rowspan="2">
     Недоступно в табличном отображении
@@ -739,7 +740,7 @@
   class="hotkeys-view-unavailable"
   hidden
 >
-  <td>Вправо</td>
+  <td>К концу</td>
 
   <td class="hotkeys-disabled-cell">
     недоступно
@@ -751,38 +752,38 @@
                 
                 <td rowspan="7">Мультивыбор</td>
                 <td rowspan="2">По дереву</td>
-                <td>Вверх</td>
+                <td>К началу</td>
                 <td rowspan="2"></td>
                 <td data-action="deepUp" data-fixed-key="ArrowUp"></td>
                 <td rowspan="2" data-action="deepClick">Primary+Click</td>
                 <td rowspan="7" style="color: gray;">нет, не нужно</td>
               </tr>
               <tr>
-                <td>Вниз</td><td data-action="deepDown" data-fixed-key="ArrowDown"></td>
+                <td>К концу</td><td data-action="deepDown" data-fixed-key="ArrowDown"></td>
               </tr>
 
               <tr>
                 <td rowspan="2">По уровню</td>
-                <td>Вверх</td>
+                <td>К внешнему</td>
                 <td rowspan="2"></td>
                 <td data-action="rangeUp" data-fixed-key="ArrowUp"></td>
                 <td rowspan="2" data-action="rangeClick">Primary+Alt+Shift+Click</td>
                 
               </tr>
               <tr>
-                <td>Вниз</td><td data-action="rangeDown" data-fixed-key="ArrowDown"></td>
+                <td>К вложенному</td><td data-action="rangeDown" data-fixed-key="ArrowDown"></td>
               </tr>
   
               <tr>
                 <td rowspan="2">По ветке</td>
-                <td>Влево</td>
+                <td>К началу</td>
                 <td rowspan="2">Расширение выделения к родителю / первому ребёнку по одной branch-цепочке</td>
                 <td data-action="branchRangeLeft" data-fixed-key="ArrowLeft"></td>
                 <td rowspan="2">-</td>
                 
               </tr>
               <tr>
-                <td>Вправо</td><td data-action="branchRangeRight" data-fixed-key="ArrowRight"></td>
+                <td>К концу</td><td data-action="branchRangeRight" data-fixed-key="ArrowRight"></td>
               </tr>
             
               <tr>
@@ -798,7 +799,7 @@
                 
                 <td rowspan="9">Перемещение</td>
                 <td rowspan="2">По дереву</td>
-                <td>Вверх</td>
+                <td>К началу</td>
                 <td></td>
                 <td data-action="moveUp" data-fixed-key="ArrowUp"></td>
                 <td rowspan="6" style="background-color: #f3f3f3;">Зажать ЛКМ > Переместить</td>
@@ -807,29 +808,29 @@
 
               <tr>
                 
-                <td>Вниз</td>
+                <td>К концу</td>
                 <td></td>
                 <td data-action="moveDown" data-fixed-key="ArrowDown"></td>
               </tr>
 
               <tr>
                 <td rowspan="2">По уровню</td>
-                <td>Вверх</td>
+                <td>К внешнему</td>
                 <td rowspan="2">Перемещение к предыдущему/следующему объекту того же уровня</td>
                 <td data-action="levelMoveUp" data-fixed-key="ArrowUp"></td>
               </tr>
               <tr>
-                <td>Вниз</td><td data-action="levelMoveDown" data-fixed-key="ArrowDown"></td>
+                <td>К вложенному</td><td data-action="levelMoveDown" data-fixed-key="ArrowDown"></td>
               </tr>
   
               <tr>
                 <td rowspan="2">По ветке</td>
-                <td>Влево</td>
+                <td>К началу</td>
                 <td rowspan="2">Перемещение к родителю / вложение в первого ребёнка текущей ветки</td>
                 <td data-action="branchMoveLeft" data-fixed-key="ArrowLeft"></td>
               </tr>
               <tr>
-                <td>Вправо</td><td data-action="branchMoveRight" data-fixed-key="ArrowRight"></td>
+                <td>К концу</td><td data-action="branchMoveRight" data-fixed-key="ArrowRight"></td>
               </tr>
 
               <tr>
@@ -1126,7 +1127,7 @@
               <tr>
                 
                 <td rowspan="7">Содержание</td>
-                <td colspan="2">Перенос строки</td>
+                <td colspan="2">Перенос строки в описании</td>
                 <td>Во время редактирования названия и подписи </td>
                 <td data-action="addCaptionLineBreak">Shift+Enter</td>
                 <td style="color: gray;">нет, не нужно</td>
@@ -1304,9 +1305,10 @@
 <script src="ui_resources.js"></script>
 <script src="app_core.js"></script>
 <script src="rename.js"></script>
+<script src="schema_autoscroll.js"></script>
 <script src="app2.js"></script>
 <script src="arrow_scroll_lock.js"></script>
-<script src="schema_autoscroll.js"></script>
+
 <script src="schema_lines.js"></script>
   
   <script src="hotkeys_editor.js"></script>

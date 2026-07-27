@@ -168,7 +168,8 @@
   min-width: 100% !important;
 
   box-sizing: border-box;
-  padding: 3px 6px;
+  padding: 3px 24px 3px 6px;
+position: relative;
 
   border: 0;
   background: #fff;
@@ -180,6 +181,21 @@
 
   cursor: pointer;
   white-space: nowrap;
+}
+
+.structure-table
+.table-tag-compact-option.is-selected::after {
+  content: "✓";
+
+  position: absolute;
+  right: 6px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+    font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .structure-table .table-tag-compact-option:hover,

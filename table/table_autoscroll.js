@@ -16,10 +16,12 @@
 
   const VERTICAL_BUFFER_ROWS = 2;
   const HORIZONTAL_EDGE_GAP = 10;
+  const MOUSE_VERTICAL_EDGE_GAP = 10;
 
   let scrollRaf = null;
   let scrollRequested = false;
   let pendingCell = null;
+  let pendingMode = "keyboard";
 
   function isTableViewActive() {
     return (
@@ -432,7 +434,10 @@ function isHorizontalPositionLocked(cellOrContainer) {
     scrollRaf = null;
 
     const cell = pendingCell;
+    const scrollMode = pendingMode;
+
     pendingCell = null;
+    pendingMode = "keyboard";
 
     if (!cell || !cell.isConnected) return;
     if (!isTableViewActive()) return;
@@ -508,10 +513,22 @@ function isHorizontalPositionLocked(cellOrContainer) {
       ) / 2
     );
 
-    const verticalBuffer = Math.min(
-      requestedVerticalBuffer,
-      maxVerticalBuffer
-    );
+const keyboardVerticalBuffer =
+  Math.min(
+    requestedVerticalBuffer,
+    maxVerticalBuffer
+  );
+
+const mouseVerticalBuffer =
+  Math.min(
+    MOUSE_VERTICAL_EDGE_GAP,
+    maxVerticalBuffer
+  );
+
+const verticalBuffer =
+  scrollMode === "mouse"
+    ? mouseVerticalBuffer
+    : keyboardVerticalBuffer;
 
     const safeTop =
       visibleTop + verticalBuffer;
@@ -591,10 +608,20 @@ if (
 }
   }
 
-  function scrollCellIntoView(cell) {
-    if (!cell || !isTableViewActive()) return;
+function scrollCellIntoView(
+  cell,
+  options = {}
+) {
+  if (!cell || !isTableViewActive()) {
+    return;
+  }
 
-    pendingCell = cell;
+  pendingCell = cell;
+
+  pendingMode =
+    options.mode === "mouse"
+      ? "mouse"
+      : "keyboard";
 
     /*
       За один кадр выполняется только один расчёт.
@@ -637,6 +664,7 @@ window.tableAutoscroll = {
       scrollRaf = null;
       scrollRequested = false;
       pendingCell = null;
+      pendingMode = "keyboard";
     },
   };
 })();
