@@ -143,6 +143,52 @@ function getRowsMatrix() {
 function selectCell(td, options = {}) {
   if (!td) return;
 
+    /*
+    Находим ячейку, внутри которой сейчас
+    открыто окно сессий.
+  */
+  const openSessionsCell =
+    getTable()
+      ?.querySelector(
+        ".table-time-sessions"
+      )
+      ?.closest(
+        `td.${CELL_CLASS}`
+      );
+
+  /*
+    Пока остаёмся в той же ячейке,
+    окно сессий не закрываем.
+
+    При переходе на любую другую ячейку:
+    - мышью;
+    - одиночной стрелкой;
+    - зажатой стрелкой —
+    закрываем окно без полного render.
+  */
+  if (
+    openSessionsCell &&
+    openSessionsCell !== td
+  ) {
+    window.tableTimerCells
+      ?.closeSessions?.({
+        rerender: false,
+      });
+  }
+    /*
+    При выборе другой ячейки выходим
+    из внутреннего режима предыдущей.
+  */
+  if (
+    window.tableCellInnerMode
+      ?.isActive?.() &&
+    !window.tableCellInnerMode
+      ?.isCell?.(td)
+  ) {
+    window.tableCellInnerMode
+      ?.clear?.();
+  }
+
   clearSelection();
 
   td.classList.add(SELECTED_CLASS);
@@ -227,6 +273,19 @@ if (options.scroll !== false) {
 
 function moveCell(currentCell, rowDelta, colDelta, options = {}) {
   if (!currentCell) return false;
+    /*
+    Пока мы погружены внутрь ячейки,
+    никакой код не может переместить td.
+
+    Это защищает и от обычного нажатия,
+    и от зажатых стрелок.
+  */
+  if (
+    window.tableCellInnerMode
+      ?.isActive?.()
+  ) {
+    return false;
+  }
 
   const matrix = getRowsMatrix();
   if (!matrix.length) return false;
@@ -333,93 +392,154 @@ function moveCell(currentCell, rowDelta, colDelta, options = {}) {
     return moveSelectedCellBy(0, 1, options);
   }
 
-  function activateCell(td) {
-    if (!td) return false;
-    if (!isTableViewActive()) return false;
+function activateCell(td) {
+  if (!td) return false;
+  if (!isTableViewActive()) return false;
 
-    selectCell(td, {
-      focus: true,
-      scroll: false,
+  selectCell(td, {
+    focus: true,
+    scroll: false,
+  });
+
+  function finishActivation() {
+    /*
+      Ячейка успешно активирована:
+      включаем состояние «внутри».
+    */
+    window.tableCellInnerMode
+      ?.enter?.(td);
+
+    return true;
+  }
+
+  /*
+    Основная система редакторов таблицы:
+    direct-cells, rich-text, date/time,
+    built-in cells.
+  */
+  if (
+    window.tableCellEditors
+      ?.startEdit?.(td)
+  ) {
+    return finishActivation();
+  }
+
+  const dropdownControl =
+    td.querySelector(
+      ".table-dropdown-cell-control"
+    );
+
+  if (dropdownControl?.openEditor) {
+    dropdownControl.openEditor();
+
+    return finishActivation();
+  }
+
+  /*
+    Upload-ячейки.
+
+    Обычно их перехватывает
+    table_upload_hotkeys.js, но этот блок
+    оставляем как запасной вариант.
+  */
+  const uploadButton =
+    td.querySelector(
+      [
+        ".table-file-btn",
+        ".table-image-btn",
+        ".table-cover-btn",
+      ].join(",")
+    );
+
+  if (uploadButton) {
+    window.tableCellInnerMode
+      ?.enter?.(td);
+
+    uploadButton.click();
+
+    return true;
+  }
+
+  const fileInput =
+    td.querySelector(
+      "input[type='file']"
+    );
+
+  if (fileInput) {
+    window.tableCellInnerMode
+      ?.enter?.(td);
+
+    fileInput.click();
+
+    return true;
+  }
+
+  if (
+    td.dataset.cellKey === "tag" ||
+    td.dataset.prop === "tag"
+  ) {
+    const tagControl =
+      td.querySelector(
+        ".table-tag-compact-control"
+      );
+
+    if (tagControl?.openEditor) {
+      tagControl.openEditor();
+
+      return finishActivation();
+    }
+  }
+
+  const oldControl =
+    td.querySelector(
+      [
+        "input:not([type='hidden'])",
+        "input:not([type='file'])",
+        "select",
+        "textarea",
+        "button:not([disabled])",
+      ].join(",")
+    );
+
+  if (oldControl) {
+    oldControl.focus?.({
+      preventScroll: true,
     });
 
-    /*
-      Основная система редакторов таблицы:
-      direct-cells, rich-text, date/time, built-in cells.
-    */
-    if (window.tableCellEditors?.startEdit?.(td)) {
-      return true;
+    if (
+      oldControl instanceof
+        HTMLInputElement &&
+      oldControl.type !== "file" &&
+      oldControl.type !== "color"
+    ) {
+      oldControl.select?.();
     }
 
-    const dropdownControl = td.querySelector(".table-dropdown-cell-control");
-
-    if (dropdownControl?.openEditor) {
-      dropdownControl.openEditor();
-      return true;
-    }
-
-    /*
-      Upload-ячейки:
-      Enter/F2/rename должны нажимать загрузку/замену,
-      а не случайную кнопку удаления.
-    */
-    const uploadButton = td.querySelector(
-      ".table-file-btn, .table-image-btn, .table-cover-btn"
-    );
-
-    if (uploadButton) {
-      uploadButton.click();
-      return true;
-    }
-
-    const fileInput = td.querySelector("input[type='file']");
-
-    if (fileInput) {
-      fileInput.click();
-      return true;
-    }
-
-    if (td.dataset.cellKey === "tag" || td.dataset.prop === "tag") {
-      const tagControl = td.querySelector(".table-tag-compact-control");
-
-      if (tagControl?.openEditor) {
-        tagControl.openEditor();
-        return true;
-      }
-    }
-
-    const oldControl = td.querySelector(
-      "input:not([type='hidden']):not([type='file']), select, textarea, button"
-    );
-
-    if (oldControl) {
-      oldControl.focus?.({
-        preventScroll: true,
-      });
-
-      if (
-        oldControl instanceof HTMLInputElement &&
-        oldControl.type !== "file" &&
-        oldControl.type !== "color"
-      ) {
-        oldControl.select?.();
-      }
-
-      return true;
-    }
-
-    if (td.dataset.cellKey === "__name") {
-      const id = td.dataset.rowId || td.dataset.id;
-
-      if (id) {
-        window.selectedId = id;
-        window.treeHasFocus = true;
-        window.startRename?.(id);
-        return true;
-      }
-    }
-
-    return false;
+    return finishActivation();
   }
+
+  if (
+    td.dataset.cellKey === "__name"
+  ) {
+    const id =
+      td.dataset.rowId ||
+      td.dataset.id;
+
+    if (id) {
+      window.selectedId = id;
+      window.treeHasFocus = true;
+
+      window.tableCellInnerMode
+        ?.enter?.(td);
+
+      window.startRename?.(id);
+
+      return true;
+    }
+  }
+
+  return false;
+}
 
   function activateSelectedCell() {
     const td = getSelectedCell();
@@ -482,6 +602,20 @@ function handleCellKeydown(e) {
   );
 
   if (!td) return;
+
+    /*
+    Внутри ячейки этот обработчик
+    вообще не управляет таблицей.
+
+    Событие остаётся внутреннему input,
+    dropdown, кнопке или редактору.
+  */
+  if (
+    window.tableCellInnerMode
+      ?.isCell?.(td)
+  ) {
+    return;
+  }
 
   /*
     Вся табличная навигация проходит
@@ -548,6 +682,470 @@ selectCell(td, {
     td.addEventListener("keydown", handleCellKeydown);
   }
 
+  function restoreTableFocusAfterHotkeysPanelClose() {
+  if (!isTableViewActive()) {
+    return;
+  }
+
+  /*
+    Даём модальному окну полностью закрыться,
+    удалить свои внутренние элементы и завершить
+    собственное восстановление фокуса.
+  */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (!isTableViewActive()) {
+        return;
+      }
+
+      const table = getTable();
+
+      if (!table) {
+        return;
+      }
+
+      /*
+        Берём именно визуально выбранную ячейку.
+
+        Фокус после модального окна сейчас может
+        находиться на кнопке панели, поэтому
+        document.activeElement здесь не используем.
+      */
+      const td =
+        table.querySelector(
+          `tbody td.${CELL_CLASS}.${SELECTED_CLASS}`
+        ) ||
+        findInitialCell();
+
+      if (!td) {
+        return;
+      }
+
+      /*
+        После модального окна возвращаемся
+        в состояние «снаружи ячейки».
+
+        Тогда стрелки снова перемещают td,
+        а Enter снова входит внутрь неё.
+      */
+      window.tableCellInnerMode
+        ?.clear?.();
+
+      selectCell(td, {
+        focus: true,
+        scroll: false,
+      });
+    });
+  });
+}
+
+/* =========================================================
+   Возврат клавиатурного фокуса таблице
+========================================================= */
+
+const TABLE_FOCUS_BLOCKER_SELECTOR = [
+  /*
+    Модальные окна.
+  */
+  "[role='dialog'][aria-hidden='false']",
+  ".hotkeys-exit-backdrop",
+  ".hk-exit-backdrop",
+
+  /*
+    Выпадающие меню и редакторы.
+  */
+  ".color-swatches",
+  ".table-tag-compact-menu",
+  ".table-date-picker",
+  ".table-time-picker",
+  ".table-dropdown-menu",
+].join(",");
+
+/*
+  Проверяем не просто наличие элемента,
+  а то, что он действительно видим.
+*/
+function isVisibleTableFocusBlocker(
+  element
+) {
+  if (
+    !(element instanceof Element)
+  ) {
+    return false;
+  }
+
+  const style =
+    window.getComputedStyle(element);
+
+  return (
+    style.display !== "none" &&
+    style.visibility !== "hidden" &&
+    element.getClientRects().length > 0
+  );
+}
+
+/*
+  Пока открыто модальное окно, палитра,
+  календарь или выпадающий список,
+  фокус таблице не возвращаем.
+*/
+function hasVisibleTableFocusBlocker() {
+  if (
+    document.body.classList.contains(
+      "hotkeys-panel-modal-open"
+    )
+  ) {
+    return true;
+  }
+
+  return Array.from(
+    document.querySelectorAll(
+      TABLE_FOCUS_BLOCKER_SELECTOR
+    )
+  ).some(
+    isVisibleTableFocusBlocker
+  );
+}
+
+/*
+  Поля ввода должны сохранять собственный
+  фокус — забирать его у них нельзя.
+*/
+function isExternalTypingTarget(
+  element
+) {
+  if (
+    !(element instanceof Element)
+  ) {
+    return false;
+  }
+
+  if (element.isContentEditable) {
+    return true;
+  }
+
+  const input =
+    element.closest(
+      [
+        "input",
+        "textarea",
+        "select",
+        "[contenteditable='true']",
+        "[contenteditable='']",
+      ].join(",")
+    );
+
+  return !!input;
+}
+
+/*
+  Берём именно визуально выбранную ячейку.
+
+  document.activeElement здесь использовать
+  нельзя: он как раз может находиться
+  на кнопке верхнего бара.
+*/
+function getVisuallySelectedTableCell() {
+  const table = getTable();
+
+  if (!table) {
+    return null;
+  }
+
+  return (
+    table.querySelector(
+      `tbody td.${CELL_CLASS}.${SELECTED_CLASS}`
+    ) ||
+    findInitialCell()
+  );
+}
+
+/*
+  Возвращает настоящий DOM-фокус
+  на выбранную ячейку.
+*/
+function restoreSelectedTableCellFocus() {
+  if (!isTableViewActive()) {
+    return false;
+  }
+
+  if (
+    hasVisibleTableFocusBlocker()
+  ) {
+    return false;
+  }
+
+  const active =
+    document.activeElement;
+
+  /*
+    Фокус уже находится внутри таблицы —
+    повторно ничего не делаем.
+  */
+  const table = getTable();
+
+  if (
+    table &&
+    active instanceof Element &&
+    table.contains(active)
+  ) {
+    return true;
+  }
+
+  /*
+    Не отбираем фокус у текстовых полей,
+    select и других редакторов.
+  */
+  if (
+    isExternalTypingTarget(active)
+  ) {
+    return false;
+  }
+
+  const td =
+    getVisuallySelectedTableCell();
+
+  if (!td) {
+    return false;
+  }
+
+  /*
+    После работы с внешней панелью
+    возвращаемся в состояние
+    «снаружи ячейки».
+  */
+  window.tableCellInnerMode
+    ?.clear?.();
+
+  selectCell(td, {
+    focus: true,
+    scroll: false,
+  });
+
+  return true;
+}
+
+/*
+  Действия панели могут:
+  - вызвать render;
+  - открыть или закрыть меню;
+  - изменить класс кнопки.
+
+  Поэтому возвращаем фокус после завершения
+  текущего click и двух кадров браузера.
+*/
+function scheduleTableFocusRestore(
+  attempt = 0
+) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (!isTableViewActive()) {
+        return;
+      }
+
+      /*
+        Меню ещё открыто — ждём его закрытия.
+
+        Ограничение не позволяет создавать
+        бесконечный цикл ожидания.
+      */
+      if (
+        hasVisibleTableFocusBlocker()
+      ) {
+        if (attempt < 10) {
+          setTimeout(() => {
+            scheduleTableFocusRestore(
+              attempt + 1
+            );
+          }, 60);
+        }
+
+        return;
+      }
+
+      restoreSelectedTableCellFocus();
+    });
+  });
+}
+
+/*
+  После обычной кнопки верхнего бара
+  возвращаем фокус таблице.
+
+  Кнопка, которая открыла меню, сначала
+  оставит меню видимым, поэтому проверка
+  blocker не позволит закрыть взаимодействие
+  преждевременно.
+*/
+function handleTopbarActionClick(
+  event
+) {
+  if (!isTableViewActive()) {
+    return;
+  }
+
+  const target =
+    event.target instanceof Element
+      ? event.target
+      : null;
+
+  if (!target) {
+    return;
+  }
+
+  /*
+    Работаем только с верхним баром.
+  */
+  const topbar =
+    target.closest(".hint");
+
+  if (!topbar) {
+    return;
+  }
+
+  /*
+    Поля ввода и native color picker
+    должны завершить собственную работу.
+  */
+  if (
+    isExternalTypingTarget(target)
+  ) {
+    return;
+  }
+
+  const action =
+    target.closest(
+      [
+        "button",
+        "[role='button']",
+        ".color-dot",
+      ].join(",")
+    );
+
+  if (!action) {
+    return;
+  }
+
+  scheduleTableFocusRestore();
+}
+
+/*
+  Для input[type=color] click пропускаем,
+  но после выбора цвета браузер отправит
+  change — тогда можно вернуть фокус.
+*/
+function handleTopbarControlChange(
+  event
+) {
+  if (!isTableViewActive()) {
+    return;
+  }
+
+  const target =
+    event.target instanceof Element
+      ? event.target
+      : null;
+
+  if (
+    !target ||
+    !target.closest(".hint")
+  ) {
+    return;
+  }
+
+  scheduleTableFocusRestore();
+}
+
+/*
+  Страховка на случай, если какая-то кнопка
+  всё же оставила фокус вне таблицы.
+
+  Тогда уже первое нажатие стрелки или Enter
+  работает сразу — повторный клик по ячейке
+  не требуется.
+*/
+function handleGlobalTableFocusRecovery(
+  event
+) {
+  if (!isTableViewActive()) {
+    return;
+  }
+
+  const table = getTable();
+
+  if (!table) {
+    return;
+  }
+
+  const target =
+    event.target instanceof Element
+      ? event.target
+      : null;
+
+  /*
+    Событие уже пришло из таблицы:
+    его обработает обычная логика td.
+  */
+  if (
+    target &&
+    table.contains(target)
+  ) {
+    return;
+  }
+
+  /*
+    Пока пользователь действительно работает
+    с полем ввода, меню или модальным окном,
+    таблицу не активируем.
+  */
+  if (
+    isExternalTypingTarget(target) ||
+    hasVisibleTableFocusBlocker() ||
+    window.tableCellInnerMode
+      ?.isActive?.()
+  ) {
+    return;
+  }
+
+  const td =
+    getVisuallySelectedTableCell();
+
+  if (!td) {
+    return;
+  }
+
+  /*
+    Стрелки: выполняем то же действие,
+    которое обычно выполняет td.
+  */
+  if (
+    handleCellNavHotkey(
+      event,
+      td
+    )
+  ) {
+    return;
+  }
+
+  /*
+    Enter/F2/назначенный хоткей:
+    сразу возвращаем фокус и входим
+    внутрь выбранной ячейки.
+  */
+  if (
+    isCellActivateHotkey(event)
+  ) {
+    stopTableCellHotkey(event);
+
+    selectCell(td, {
+      focus: true,
+      scroll: false,
+    });
+
+    startEditCell(td);
+  }
+}
+
   function prepareTableCells() {
     if (!isTableViewActive()) return;
 
@@ -596,15 +1194,69 @@ selectCell(td, {
     window.renderTableView.__cellNavPatched = true;
   }
 
-  function init() {
-    patchRenderTableView();
+function init() {
+  patchRenderTableView();
 
-    if (isTableViewActive()) {
-      requestAnimationFrame(() => {
-        prepareTableCells();
-      });
-    }
+  /*
+    Общую систему возврата фокуса
+    подключаем только один раз.
+  */
+  if (
+    !window
+      .__tableFocusRecoveryBound
+  ) {
+    window
+      .__tableFocusRecoveryBound =
+        true;
+
+    /*
+      Обычные действия верхнего бара:
+      форматирование, Undo/Redo,
+      копирование, цвета и другие кнопки.
+    */
+    document.addEventListener(
+      "click",
+      handleTopbarActionClick,
+      false
+    );
+
+    /*
+      Завершение выбора в input,
+      включая системный выбор цвета.
+    */
+    document.addEventListener(
+      "change",
+      handleTopbarControlChange,
+      false
+    );
+
+    /*
+      Закрытие модального окна хоткеев.
+    */
+    window.addEventListener(
+      "hotkeys-panel-close",
+      scheduleTableFocusRestore
+    );
+
+    /*
+      Страховка: первое нажатие стрелки
+      или Enter работает даже тогда,
+      когда какая-то внешняя кнопка
+      не вернула фокус.
+    */
+    document.addEventListener(
+      "keydown",
+      handleGlobalTableFocusRecovery,
+      true
+    );
   }
+
+  if (isTableViewActive()) {
+    requestAnimationFrame(() => {
+      prepareTableCells();
+    });
+  }
+}
 
   window.tableCellNav = {
     init,

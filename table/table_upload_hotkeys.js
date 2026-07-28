@@ -135,9 +135,12 @@ function handleTableUploadCellsEnter(e) {
   ) {
     stopTableActionKey(e);
 
-    active.click();
+window.tableCellInnerMode
+  ?.enter?.(selectedCell);
 
-    return;
+active.click();
+
+return;
   }
 
   /*
@@ -155,11 +158,14 @@ function handleTableUploadCellsEnter(e) {
 
   if (!defaultAction) return;
 
-  stopTableActionKey(e);
+ stopTableActionKey(e);
 
-  defaultAction.focus({
-    preventScroll: true,
-  });
+window.tableCellInnerMode
+  ?.enter?.(selectedCell);
+
+defaultAction.focus({
+  preventScroll: true,
+});
 }
 
   function ensureTableUploadCellsEnterHotkey() {

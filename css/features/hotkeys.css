@@ -313,18 +313,15 @@ td.editing {
 
 .hotkeys-group-labels {
   display: grid;
-  grid-template-columns: 140px 140px 140px;
+  grid-template-columns: 120px 102px 140px;
   gap: 0;
 
   margin-top: 10px;
 }
 
 .hotkeys-group-label-col {
-  padding: 0 8px;
-
   color: #8a8a8a;
-  font-size: 14px;
-  line-height: 1.25;
+  font-size: 9px;
 }
 
 .hotkeys-group-label-col > div {

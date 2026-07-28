@@ -29,6 +29,14 @@
     );
   }
 
+  function getLabelColumns() {
+  return Array.from(
+    document.querySelectorAll(
+      "[data-hotkeys-group-label]"
+    )
+  );
+}
+
   function getSelectionRows() {
     return Array.from(
       document.querySelectorAll(
@@ -60,6 +68,19 @@
     });
   }
 
+  function syncLabelColumns() {
+  getLabelColumns().forEach((column) => {
+    const isActive =
+      column.dataset.hotkeysGroupLabel ===
+      selectedGroup;
+
+    column.classList.toggle(
+      "is-active",
+      isActive
+    );
+  });
+}
+
   function syncRows() {
     getSelectionRows().forEach((row) => {
       row.hidden =
@@ -70,10 +91,11 @@
     window.syncHotkeysTable?.();
   }
 
-  function syncAll() {
-    syncButtons();
-    syncRows();
-  }
+function syncAll() {
+  syncButtons();
+  syncLabelColumns();
+  syncRows();
+}
 
   function selectGroup(group) {
     if (!ALLOWED_GROUPS.has(group)) {

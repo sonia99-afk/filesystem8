@@ -245,15 +245,27 @@ const actions =
     return true;
   }
 
-  function canRunTableActionNow() {
-    return !!(
-      isTableViewActive() &&
-      document
-        .getElementById("tree")
-        ?.querySelector?.(".structure-table") &&
-      window.tableCellNav?.getSelectedCell?.()
-    );
-  }
+function canRunTableActionNow() {
+  return !!(
+    isTableViewActive() &&
+
+    /*
+      В режиме «внутри ячейки»
+      табличный repeat запрещён.
+    */
+    !window.tableCellInnerMode
+      ?.isActive?.() &&
+
+    document
+      .getElementById("tree")
+      ?.querySelector?.(
+        ".structure-table"
+      ) &&
+
+    window.tableCellNav
+      ?.getSelectedCell?.()
+  );
+}
 
   function runTableAction(action) {
     if (!canRunTableActionNow()) {
@@ -469,9 +481,23 @@ function runAction(action) {
   return runTreeAction(action);
 }
 
-  function step() {
-    if (
-      !heldCode ||
+function step() {
+  /*
+    Если пользователь уже вошёл
+    внутрь ячейки, прекращаем ранее
+    запущенный repeat.
+  */
+  if (
+    isTableViewActive() &&
+    window.tableCellInnerMode
+      ?.isActive?.()
+  ) {
+    stop();
+    return;
+  }
+
+  if (
+    !heldCode ||
       !heldAction ||
       !downKeys.has(heldCode)
     ) {
@@ -526,6 +552,20 @@ function runAction(action) {
     "keydown",
     (e) => {
       if (window.hotkeysMode === "custom") return;
+
+          /*
+      Внутри ячейки системные повторные
+      keydown остаются внутреннему контролу,
+      но наш общий repeat не запускается.
+    */
+    if (
+      isTableViewActive() &&
+      window.tableCellInnerMode
+        ?.isActive?.()
+    ) {
+      stop();
+      return;
+    }
 
       
       if (isTypingTarget(e.target)) return;
