@@ -28,9 +28,51 @@
     wrap.appendChild(ul);
     host.appendChild(wrap);
 
-    requestAnimationFrame(() => {
-      alignHierarchyCaptions();
-    });
+requestAnimationFrame(() => {
+  alignHierarchyCaptions();
+
+  /*
+    Когда дерево активно, после render()
+    возвращаем настоящий DOM-фокус
+    выбранному объекту.
+  */
+  if (!treeHasFocus || !selectedId) {
+    return;
+  }
+
+  /*
+    Не перехватываем фокус обратно,
+    если уже началось переименование
+    или другое редактирование.
+  */
+  const active =
+    document.activeElement;
+
+  const activeTag =
+    String(
+      active?.tagName || ""
+    ).toLowerCase();
+
+  const isEditing =
+    activeTag === "input" ||
+    activeTag === "textarea" ||
+    activeTag === "select" ||
+    active?.isContentEditable ||
+    !!active?.closest?.(".edit");
+
+  if (isEditing) {
+    return;
+  }
+
+  const selectedRow =
+    host.querySelector(
+      `.hierarchy-view .row[data-id="${cssEscape(selectedId)}"]`
+    );
+
+  selectedRow?.focus({
+    preventScroll: true,
+  });
+});
   };
 
   function alignHierarchyCaptions() {
