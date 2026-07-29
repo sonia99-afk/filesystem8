@@ -30,6 +30,11 @@
 <link rel="stylesheet" href="css/panels/hotkeys_modal.css" />
 
 <link rel="stylesheet" href="css/panels/hotkeys_sidebar.css" />
+
+<link
+  rel="stylesheet"
+  href="css/features/view_tabs.css"
+/>
 </head>
 <body>
 
@@ -205,18 +210,7 @@
           </div>
         </div>
 
-        <span class="view-switcher">
-          <button id="modeStd" onclick="window.appRouter?.open('schema')" class="btnn">Структура</button>
-          <button id="modeHierarchy" onclick="window.appRouter?.open('hierarchy')" class="btnn">Иерархия</button>
-          <button id="modeAicycle" onclick="window.appRouter?.open('aicycle')" class="btnn">Айсикл</button>
-          <button id="modeTable" onclick="window.appRouter?.open('table')" class="btnn">Таблица</button>
-          <button id="modeList" onclick="window.appRouter?.open('list')" class="btnn">Лист</button>
-          <button id="modeText" onclick="window.appRouter?.open('text')" class="btnn">Текст</button>
-        </span>
-        <span class="hierarchy-orientation-switcher">
-          <button id="hierarchyHorizontalBtn" onclick="setViewOrientation('horizontal')" class="btnn">Горизонтальная</button>
-          <button id="hierarchyVerticalBtn" onclick="setViewOrientation('vertical')" class="btnn">Вертикальная</button>
-        </span>
+        
         <!-- <button id="tgCopy" class="btnn copybtnn"><img src="icons/Копировать.png" class="color-icon-bg-img copy" /></button> -->
         <button id="toggleOrdinals" class="btnn margin">Нумерация</button>
         <button id="toggleCaptions" class="btnn">Описание</button>
@@ -278,6 +272,27 @@
           </div>
         </span>
       </div>
+
+      <div
+  id="viewTabsRow"
+  class="view-tabs-row"
+  aria-label="Виды"
+>
+  <div
+    id="viewTabsList"
+    class="view-tabs-list"
+    role="tablist"
+    aria-label="Открытые виды"
+  ></div>
+
+  <button
+    id="addViewTabBtn"
+    class="view-tab-add"
+    type="button"
+  >
+    + Вид
+  </button>
+</div>
 
       <div class="object-breadcrumbs" id="objectBreadcrumbs">
         <!-- <button type="button" class="object-breadcrumb-item">Путь</button>
@@ -1377,5 +1392,6 @@
   <script src="hide_nodes.js"></script>
   <script src="hide_levels.js"></script>
   <script src="spa_router.js"></script>
+  <script src="view_tabs.js"></script>
 </body>
 </html>

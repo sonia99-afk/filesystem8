@@ -7,12 +7,71 @@ if (!window.root || !window.VIEW || typeof window.snapshot !== "function") {
 }
 
 function syncViewButtons() {
-  document.getElementById("modeStd")?.classList.toggle("is-active", currentView === VIEW.SCHEMA);
-  document.getElementById("modeHierarchy")?.classList.toggle("is-active", currentView === VIEW.HIERARCHY);
-  document.getElementById("modeAicycle")?.classList.toggle("is-active", currentView === VIEW.AICYCLE);
-  document.getElementById("modeTable")?.classList.toggle("is-active", currentView === VIEW.TABLE);
-  document.getElementById("modeList")?.classList.toggle("is-active", currentView === VIEW.LIST);
-  document.getElementById("modeText")?.classList.toggle("is-active", currentView === VIEW.TEXT);
+  /*
+    Новая строка вкладок.
+  */
+  window.viewTabs
+    ?.syncFromCurrentView?.();
+
+  /*
+    Старые элементы оставлены как fallback.
+
+    После удаления старых кнопок из HTML
+    эти проверки просто ничего не делают.
+  */
+  document
+    .getElementById("modeStd")
+    ?.classList.toggle(
+      "is-active",
+
+      currentView ===
+      VIEW.SCHEMA
+    );
+
+  document
+    .getElementById("modeHierarchy")
+    ?.classList.toggle(
+      "is-active",
+
+      currentView ===
+      VIEW.HIERARCHY
+    );
+
+  document
+    .getElementById("modeAicycle")
+    ?.classList.toggle(
+      "is-active",
+
+      currentView ===
+      VIEW.AICYCLE
+    );
+
+  document
+    .getElementById("modeTable")
+    ?.classList.toggle(
+      "is-active",
+
+      currentView ===
+      VIEW.TABLE
+    );
+
+  document
+    .getElementById("modeList")
+    ?.classList.toggle(
+      "is-active",
+
+      currentView ===
+      VIEW.LIST
+    );
+
+  document
+    .getElementById("modeText")
+    ?.classList.toggle(
+      "is-active",
+
+      currentView ===
+      VIEW.TEXT
+    );
 }
 
 function setCurrentView(view) {
@@ -23,9 +82,7 @@ function setCurrentView(view) {
 
   currentView = view || VIEW.SCHEMA;
 
-  if (currentView === VIEW.AICYCLE) {
-    viewOrientation = VIEW_ORIENTATION.HORIZONTAL;
-  }
+
 
   document.body.classList.toggle("view-hierarchy", currentView === VIEW.HIERARCHY);
   document.body.classList.toggle("view-schema", currentView === VIEW.SCHEMA);

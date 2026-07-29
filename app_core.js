@@ -173,6 +173,20 @@
     if (typeof global.tableSelectedCell === "undefined") {
       global.tableSelectedCell = null;
     }
+
+    if (
+  typeof global.viewTabsState ===
+  "undefined"
+) {
+  /*
+    Для старых проектов будет null.
+
+    После загрузки view_tabs.js
+    автоматически создаст все
+    восемь стандартных вкладок.
+  */
+  global.viewTabsState = null;
+}
   
     if (typeof global.treeHasFocus === "undefined") {
       global.treeHasFocus = true;
@@ -322,6 +336,15 @@
         showOrdinals: global.showOrdinals,
         showCaptions: global.showCaptions,
         tableSelectedCell: global.tableSelectedCell,
+
+        viewTabsState:
+  global.viewTabsState
+    ? JSON.parse(
+        JSON.stringify(
+          global.viewTabsState
+        )
+      )
+    : null,
   
         // Важно для отдельной table.html: сохраняем side maps сразу в ядре.
         __fmtMap: global.__fmtMap || {},
@@ -399,6 +422,25 @@
       if (typeof data.showCaptions === "boolean") global.showCaptions = data.showCaptions;
 
       global.tableSelectedCell = data.tableSelectedCell || null;
+
+      global.viewTabsState =
+  data.viewTabsState
+    ? JSON.parse(
+        JSON.stringify(
+          data.viewTabsState
+        )
+      )
+    : null;
+
+/*
+  Если модуль вкладок уже загружен,
+  сразу нормализуем состояние.
+
+  Для старого сохранения с null
+  будут созданы стандартные виды.
+*/
+global.viewTabs
+  ?.normalizeState?.();
   
       global.__fmtMap = data.__fmtMap || Object.create(null);
       global.__colorFmtMap = data.__colorFmtMap || Object.create(null);
