@@ -257,6 +257,8 @@ const DEFINITIONS = {
             name:
               definition(kind)
                 .name,
+
+            settings: {},
           };
         }
       );
@@ -346,11 +348,17 @@ const DEFINITIONS = {
           definition(kind)
             .name;
 
-        items.push({
-          id,
-          kind,
-          name,
-        });
+          items.push({
+            id,
+            kind,
+            name,
+
+            settings:
+              raw.settings &&
+              typeof raw.settings === "object"
+                ? raw.settings
+                : {},
+          });
       }
     );
 
@@ -759,6 +767,11 @@ return state;
       definition(kind)
         .name;
 
+        item.settings =
+  window.viewSettings
+    ?.createDefaultSettings
+    ?.(kind) || {};
+
     state.activeId =
       item.id;
 
@@ -780,16 +793,21 @@ return state;
     const def =
       definition(kind);
 
-    const item = {
-      id: uid(),
+  const item = {
+  id: uid(),
 
-      kind,
+  kind,
 
-      name:
-        uniqueName(
-          def.name
-        ),
-    };
+  name:
+    uniqueName(
+      def.name
+    ),
+
+  settings:
+    window.viewSettings
+      ?.createDefaultSettings
+      ?.(kind) || {},
+};
 
     state.items.push(item);
 
@@ -873,17 +891,22 @@ async function duplicateItem(
   const source =
     state.items[index];
 
-  const copy = {
-    id: uid(),
+const copy = {
+  id: uid(),
 
-    kind:
-      source.kind,
+  kind:
+    source.kind,
 
-    name:
-      uniqueName(
-        `${source.name} копия`
-      ),
-  };
+  name:
+    uniqueName(
+      `${source.name} копия`
+    ),
+
+  settings:
+    clone(
+      source.settings || {}
+    ),
+};
 
   /*
     Копия появляется сразу

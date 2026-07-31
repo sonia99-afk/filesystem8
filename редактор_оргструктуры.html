@@ -35,6 +35,11 @@
   rel="stylesheet"
   href="css/features/view_tabs.css"
 />
+
+<link
+  rel="stylesheet"
+  href="css/features/view_settings.css"
+/>
 </head>
 <body>
 
@@ -209,90 +214,425 @@
             </div>
           </div>
         </div>
-
-        
-        <!-- <button id="tgCopy" class="btnn copybtnn"><img src="icons/Копировать.png" class="color-icon-bg-img copy" /></button> -->
-        <button id="toggleOrdinals" class="btnn margin">Нумерация</button>
-        <button id="toggleCaptions" class="btnn">Описание</button>
-
-        <span class="mark-tools" id="markTools">
-          <button id="toggleMarks" class="btnn" type="button" style="margin-right: 10px;">Отметка</button>
-          <!-- <button id="markSettingsBtn" class="btnn" type="button" style="padding-left: 5px; padding-right: 5px;"><img src="icons/rol.png" class="color-icon-bg-img" /></button> -->
-          <button id="markSettingsBtn" class="btnn icon-settings" type="button"></button>
-
-
-          <div id="markSettingsMenu" class="mark-settings-menu" aria-hidden="true">
-            <div class="mark-settings-title">Отмеченные объекты:</div>
-        
-            <button class="mark-settings-item" type="button" data-mark-mode="hide">
-              <span class="mark-settings-icon"><img src="icons/Показать.png" class="color-icon-bg-img" /></span>
-              <span class="mark-settings-text">Скрыть</span>
-            </button>
-        
-            <button class="mark-settings-item" type="button" data-mark-mode="strike">
-              <span class="mark-settings-icon"><img src="icons/Зачеркнутный.png" class="color-icon-bg-img" /></span>
-              <span class="mark-settings-text">Зачеркнуть</span>
-            </button>
-          </div>
-        </span>
-
-        <span id="levelHeadersTools" class="level-headers-tools">
-          <button id="toggleLevelHeaders" class="btnn" type="button" style="margin-right: 10px;"> Заголовок уровней </button>
-        
-          <!-- <button id="levelHeadersSettingsBtn" class="btnn" type="button" disabled>
-            <img src="icons/rol.png" class="color-icon-bg-img" />
-          </button> -->
-
-          <button id="levelHeadersSettingsBtn" class="btnn icon-settings" type="button" disabled></button>
-        
-          <div id="levelHeadersMenu" class="level-headers-settings-menu" aria-hidden="true">
-            <div class="level-headers-settings-title">В шапке:</div>
-        
-            <button type="button" class="level-headers-settings-item" data-level-header-mode="header-row">
-              <span class="level-headers-settings-icon"></span>
-              <span>Строкой</span>
-            </button>
-        
-            <button type="button" class="level-headers-settings-item" data-level-header-mode="header-cascade">
-              <span class="level-headers-settings-icon"></span>
-              <span>Каскадом</span>
-            </button>
-        
-            <div class="level-headers-settings-title">В колонке:</div>
-        
-            <button type="button" class="level-headers-settings-item" data-level-header-mode="column-stack">
-              <span class="level-headers-settings-icon"></span>
-              <span>Столбцом</span>
-            </button>
-        
-            <button type="button" class="level-headers-settings-item" data-level-header-mode="column-cascade">
-              <span class="level-headers-settings-icon"></span>
-              <span>Каскадом</span>
-            </button>
-          </div>
-        </span>
       </div>
 
-      <div
+<div
   id="viewTabsRow"
   class="view-tabs-row"
   aria-label="Виды"
 >
-  <div
-    id="viewTabsList"
-    class="view-tabs-list"
-    role="tablist"
-    aria-label="Открытые виды"
-  ></div>
+  <div class="view-tabs-scroll">
+    <div
+      id="viewTabsList"
+      class="view-tabs-list"
+      role="tablist"
+      aria-label="Открытые виды"
+    ></div>
+
+    <button
+      id="addViewTabBtn"
+      class="view-tab-add"
+      type="button"
+    >
+      + Вид
+    </button>
+  </div>
 
   <button
-    id="addViewTabBtn"
-    class="view-tab-add"
+    id="viewSettingsOpenBtn"
+    class="view-settings-open-btn"
     type="button"
+    aria-controls="viewSettingsPanel"
+    aria-expanded="false"
   >
-    + Вид
+    <span
+      class="view-settings-open-icon"
+      aria-hidden="true"
+    >
+      ⚙
+    </span>
+
+    <span>Настроить вид</span>
   </button>
 </div>
+
+<aside
+  id="viewSettingsPanel"
+  class="view-settings-panel"
+  aria-hidden="true"
+  aria-label="Настройка вида"
+>
+  <div class="view-settings-header">
+    <div class="view-settings-title">
+      Настройка вида
+    </div>
+
+    <button
+      id="viewSettingsCloseBtn"
+      class="view-settings-close-btn"
+      type="button"
+      aria-label="Закрыть настройки вида"
+      title="Закрыть"
+    >
+      ×
+    </button>
+  </div>
+
+  <div class="view-settings-body">
+    <label class="view-settings-select-field">
+      <span class="view-settings-select-label">
+        Вид
+      </span>
+
+      <select
+        id="viewSettingsViewSelect"
+        class="view-settings-view-select"
+      ></select>
+    </label>
+
+    <!-- =========================
+         Свойства
+    ========================== -->
+
+    <!-- =========================
+     Свойства
+========================== -->
+
+<section class="view-settings-section">
+  <div class="view-settings-section-header">
+    <span class="view-settings-section-title">
+      Свойства
+    </span>
+
+    <span
+      id="viewSettingsPropertiesCount"
+      class="view-settings-section-count"
+    >
+      0
+    </span>
+  </div>
+
+  <!-- =========================
+       Метка
+  ========================== -->
+
+  <div
+    id="markTools"
+    class="view-settings-control-row mark-tools"
+    data-view-property-row
+    data-view-property="marks"
+  >
+    <div class="view-settings-control-main">
+      <span
+        class="view-settings-property-icon"
+        aria-hidden="true"
+      >
+        ◎
+      </span>
+
+      <span class="view-settings-control-name">
+        Метка
+      </span>
+    </div>
+
+    <div class="view-settings-control-actions">
+      <button
+        id="markSettingsBtn"
+        class="btnn view-settings-gear icon-settings"
+        type="button"
+        aria-label="Настройки отметки"
+        title="Настройки отображения отмеченных объектов"
+      ></button>
+
+      <button
+        id="toggleMarks"
+        class="ui-toggle"
+        type="button"
+        role="switch"
+        aria-checked="false"
+        aria-label="Показывать отметки"
+      ></button>
+    </div>
+
+    <div
+      id="markSettingsMenu"
+      class="mark-settings-menu"
+      aria-hidden="true"
+    >
+      <div class="mark-settings-title">
+        Отмеченные объекты:
+      </div>
+
+      <button
+        class="mark-settings-item"
+        type="button"
+        data-mark-mode="hide"
+      >
+        <span class="mark-settings-icon">
+          <img
+            src="icons/Показать.png"
+            class="color-icon-bg-img"
+            alt=""
+          />
+        </span>
+
+        <span class="mark-settings-text">
+          Скрыть
+        </span>
+      </button>
+
+      <button
+        class="mark-settings-item"
+        type="button"
+        data-mark-mode="strike"
+      >
+        <span class="mark-settings-icon">
+          <img
+            src="icons/Зачеркнутный.png"
+            class="color-icon-bg-img"
+            alt=""
+          />
+        </span>
+
+        <span class="mark-settings-text">
+          Зачеркнуть
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!--
+    Сюда view_settings.js автоматически добавит:
+
+    Иконка
+    Обложка
+  -->
+
+  <div
+    id="viewSettingsBeforeName"
+    class="view-settings-generated-list"
+  ></div>
+
+  <!-- =========================
+       Название
+  ========================== -->
+
+  <div
+    class="view-settings-control-row"
+    data-view-property-row
+    data-view-property="name"
+  >
+    <div class="view-settings-control-main">
+      <span
+        class="view-settings-property-icon"
+        aria-hidden="true"
+      >
+        Aa
+      </span>
+
+      <span class="view-settings-control-name">
+        Название
+      </span>
+    </div>
+
+    <div class="view-settings-control-actions">
+      <button
+        class="ui-toggle"
+        type="button"
+        role="switch"
+        aria-checked="true"
+        aria-disabled="true"
+        disabled
+        title="Название отображается всегда"
+      ></button>
+    </div>
+  </div>
+
+  <!-- =========================
+       Нумерация
+  ========================== -->
+
+  <div
+    class="view-settings-control-row"
+    data-view-property-row
+    data-view-property="ordinals"
+  >
+    <div class="view-settings-control-main">
+      <span
+        class="view-settings-property-icon"
+        aria-hidden="true"
+      >
+        №
+      </span>
+
+      <span class="view-settings-control-name">
+        Нумерация
+      </span>
+    </div>
+
+    <div class="view-settings-control-actions">
+      <button
+        id="toggleOrdinals"
+        class="ui-toggle"
+        type="button"
+        role="switch"
+        aria-checked="true"
+        aria-label="Показывать нумерацию"
+      ></button>
+    </div>
+  </div>
+
+  <!-- =========================
+       Описание
+  ========================== -->
+
+  <div
+    class="view-settings-control-row"
+    data-view-property-row
+    data-view-property="captions"
+  >
+    <div class="view-settings-control-main">
+      <span
+        class="view-settings-property-icon"
+        aria-hidden="true"
+      >
+        ≡
+      </span>
+
+      <span class="view-settings-control-name">
+        Описание
+      </span>
+    </div>
+
+    <div class="view-settings-control-actions">
+      <button
+        id="toggleCaptions"
+        class="ui-toggle"
+        type="button"
+        role="switch"
+        aria-checked="true"
+        aria-label="Показывать описание"
+      ></button>
+    </div>
+  </div>
+
+  <!--
+    Сюда view_settings.js автоматически добавит:
+
+    Текст
+    Дата начала
+    Время начала
+    Дата завершения
+    Время завершения
+    Приоритет
+    Фокус
+    Статус
+    Тег
+    Доп. изображения
+    Файл
+    Счётчик времени
+    Время таймера
+    Оставшееся время
+  -->
+
+  <div
+    id="viewSettingsAfterDescription"
+    class="view-settings-generated-list"
+  ></div>
+</section>
+
+    <!-- =========================
+         Интерфейс
+    ========================== -->
+
+    <section class="view-settings-section">
+      <div class="view-settings-section-header">
+        <span class="view-settings-section-title">
+          Интерфейс
+        </span>
+      </div>
+
+      <div
+        id="levelHeadersTools"
+        class="view-settings-control-row level-headers-tools"
+      >
+        <span class="view-settings-control-name">
+          Заголовки уровней
+        </span>
+
+        <div class="view-settings-control-actions">
+          <button
+            id="levelHeadersSettingsBtn"
+            class="btnn view-settings-gear icon-settings"
+            type="button"
+            aria-label="Настройки заголовков уровней"
+            title="Настройки заголовков уровней"
+            disabled
+          ></button>
+
+          <button
+            id="toggleLevelHeaders"
+            class="ui-toggle"
+            type="button"
+            role="switch"
+            aria-checked="false"
+            aria-label="Показывать заголовки уровней"
+          ></button>
+        </div>
+
+        <div
+          id="levelHeadersMenu"
+          class="level-headers-settings-menu"
+          aria-hidden="true"
+        >
+          <div class="level-headers-settings-title">
+            В шапке:
+          </div>
+
+          <button
+            type="button"
+            class="level-headers-settings-item"
+            data-level-header-mode="header-row"
+          >
+            <span class="level-headers-settings-icon"></span>
+            <span>Строкой</span>
+          </button>
+
+          <button
+            type="button"
+            class="level-headers-settings-item"
+            data-level-header-mode="header-cascade"
+          >
+            <span class="level-headers-settings-icon"></span>
+            <span>Каскадом</span>
+          </button>
+
+          <div class="level-headers-settings-title">
+            В колонке:
+          </div>
+
+          <button
+            type="button"
+            class="level-headers-settings-item"
+            data-level-header-mode="column-stack"
+          >
+            <span class="level-headers-settings-icon"></span>
+            <span>Столбцом</span>
+          </button>
+
+          <button
+            type="button"
+            class="level-headers-settings-item"
+            data-level-header-mode="column-cascade"
+          >
+            <span class="level-headers-settings-icon"></span>
+            <span>Каскадом</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+</aside>
 
       <div class="object-breadcrumbs" id="objectBreadcrumbs">
         <!-- <button type="button" class="object-breadcrumb-item">Путь</button>
@@ -1393,5 +1733,6 @@
   <script src="hide_levels.js"></script>
   <script src="spa_router.js"></script>
   <script src="view_tabs.js"></script>
+  <script src="view_settings.js"></script>
 </body>
 </html>

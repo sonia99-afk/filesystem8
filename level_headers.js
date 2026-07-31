@@ -94,34 +94,75 @@
     btn?.classList.toggle("is-active", willOpen);
   }
 
-  function setEnabled(value) {
-    state.enabled = !!value;
+function setState(nextState = {}) {
+  const nextEnabled =
+    typeof nextState.enabled ===
+    "boolean"
+      ? nextState.enabled
+      : state.enabled;
 
-    if (!state.enabled) closeMenu();
+  const nextMode =
+    Object.values(MODES).includes(
+      nextState.mode
+    )
+      ? nextState.mode
+      : state.mode;
 
-    syncToolbar();
-    saveState();
+  const changed =
+    state.enabled !== nextEnabled ||
+    state.mode !== nextMode;
 
-    if (typeof render === "function") {
-      render();
-    }
+  state.enabled =
+    nextEnabled;
+
+  state.mode =
+    nextMode;
+
+  if (!state.enabled) {
+    closeMenu();
   }
 
-  function toggleEnabled() {
-    setEnabled(!state.enabled);
+  syncToolbar();
+  saveState();
+
+  /*
+    Режим и включённость применяются
+    одним общим рендером.
+  */
+
+  if (
+    changed &&
+    typeof render === "function"
+  ) {
+    render();
+  }
+}
+
+function setEnabled(value) {
+  setState({
+    enabled: !!value,
+  });
+}
+
+function toggleEnabled() {
+  setEnabled(
+    !state.enabled
+  );
+}
+
+function setMode(mode) {
+  if (
+    !Object.values(MODES).includes(
+      mode
+    )
+  ) {
+    return;
   }
 
-  function setMode(mode) {
-    if (!Object.values(MODES).includes(mode)) return;
-
-    state.mode = mode;
-    syncToolbar();
-    saveState();
-
-    if (typeof render === "function") {
-      render();
-    }
-  }
+  setState({
+    mode,
+  });
+}
 
   function syncToolbar() {
     const toggleBtn = getToggleBtn();
@@ -826,6 +867,7 @@ layout.className = "table-with-level-headers level-headers-table-mounted";
     getLevelTitle,
     setLevelTitle,
 
+    setState,
     setEnabled,
     setMode,
     refresh: syncToolbar,

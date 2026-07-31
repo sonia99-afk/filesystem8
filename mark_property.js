@@ -253,45 +253,72 @@ const isHidden = !!window.__markHiddenMap[row.dataset.id];
     setShowMarks(!state.showMarks);
   }
 
-  function toggleHideMarked() {
-    state.hideMarked = !state.hideMarked;
-  
-    if (!state.hideMarked) {
-      clearAllHidden();
-    }
-  
-    decorateAllRows();
+function setHideMarked(value) {
+  const next = !!value;
+
+  if (state.hideMarked === next) {
+    syncToolbar();
+    return;
   }
 
-  function toggleStrikeMarked() {
-    state.strikeMarked = !state.strikeMarked;
-    decorateAllRows();
+  state.hideMarked = next;
+
+  /*
+    При выключении скрытия возвращаем
+    все ранее скрытые объекты.
+  */
+
+  if (!next) {
+    clearAllHidden();
   }
 
-  function setMode(mode) {
-    if (mode === "hide") {
-      state.hideMarked = true;
-      syncToolbar();
-      return;
-    }
+  decorateAllRows();
+}
 
-    if (mode === "show") {
-      state.hideMarked = false;
-      syncToolbar();
-      return;
-    }
+function toggleHideMarked() {
+  setHideMarked(
+    !state.hideMarked
+  );
+}
 
-    if (mode === "strike") {
-      state.strikeMarked = true;
-      decorateAllRows();
-      return;
-    }
+function setStrikeMarked(value) {
+  const next = !!value;
 
-    if (mode === "unstrike") {
-      state.strikeMarked = false;
-      decorateAllRows();
-    }
+  if (state.strikeMarked === next) {
+    syncToolbar();
+    return;
   }
+
+  state.strikeMarked = next;
+  decorateAllRows();
+}
+
+function toggleStrikeMarked() {
+  setStrikeMarked(
+    !state.strikeMarked
+  );
+}
+
+function setMode(mode) {
+  if (mode === "hide") {
+    setHideMarked(true);
+    return;
+  }
+
+  if (mode === "show") {
+    setHideMarked(false);
+    return;
+  }
+
+  if (mode === "strike") {
+    setStrikeMarked(true);
+    return;
+  }
+
+  if (mode === "unstrike") {
+    setStrikeMarked(false);
+  }
+}
 
   function getToggleBtn() {
     return document.getElementById("toggleMarks");
@@ -584,15 +611,8 @@ const isHidden = !!window.__markHiddenMap[row.dataset.id];
     setShowMarks,
     setMode,
 
-    setHideMarked(value) {
-      state.hideMarked = !!value;
-      syncToolbar();
-    },
-
-    setStrikeMarked(value) {
-      state.strikeMarked = !!value;
-      decorateAllRows();
-    },
+setHideMarked,
+setStrikeMarked,
 
     refresh: decorateAllRows,
 

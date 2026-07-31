@@ -1,0 +1,29 @@
+/* =========================================================
+   Колонки не могут быть уже своего содержимого
+========================================================= */
+
+#tree .structure-table {
+  table-layout: auto;
+  width: max-content;
+  min-width: max-content;
+}
+
+#tree .structure-table th,
+#tree .structure-table td {
+  width: auto;
+  min-width: 120px;
+  max-width: none;
+
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+/*
+  Внутренние элементы ячеек тоже не должны
+  насильно сжиматься меньше своего содержимого.
+*/
+
+#tree .structure-table th > *,
+#tree .structure-table td > * {
+  min-width: max-content;
+}

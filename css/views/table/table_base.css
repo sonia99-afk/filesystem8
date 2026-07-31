@@ -50,23 +50,3 @@
 
 /* === Базовые ширины первых системных колонок === */
 
-.structure-table td:nth-child(1) {
-  width: 120px;
-}
-
-.structure-table td:nth-child(2) {
-  width: 120px;
-}
-
-.structure-table td:nth-child(3) {
-  width: 120px;
-}
-
-.structure-table td:nth-child(4) {
-  min-width: 120px;
-}
-
-.structure-table td:nth-child(5) {
-  min-width: 120px;
-  max-width: 120px;
-}
