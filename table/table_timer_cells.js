@@ -712,6 +712,142 @@
     rerender();
   }
 
+  /*
+  Открытие окна сессий по одному нажатию
+  на область со временем.
+
+  Для мыши и тачпада используем pointerdown,
+  чтобы действие произошло раньше общего
+  click-обработчика табличной ячейки.
+
+  Обычный click сохраняем для:
+  - Enter;
+  - Space;
+  - назначенного хоткея;
+  - программного active.click().
+*/
+
+function bindSessionsTimeControl(
+  control,
+  type,
+  node
+) {
+  if (
+    !control ||
+    !node?.id
+  ) {
+    return;
+  }
+
+  function activateControl() {
+    const td =
+      control.closest(
+        "td.table-cell"
+      );
+
+    /*
+      Сначала делаем текущую ячейку
+      активной, но не запускаем скролл.
+    */
+
+    if (td) {
+      window.tableCellNav
+        ?.selectCell?.(
+          td,
+          {
+            focus: false,
+            scroll: false,
+          }
+        );
+
+      /*
+        Центральное значение времени —
+        внутренний элемент ячейки.
+      */
+
+      window.tableCellInnerMode
+        ?.enter?.(td);
+    }
+
+    selectNode(node);
+
+    /*
+      Фокусируем именно область времени.
+      preventScroll защищает таблицу
+      от горизонтального скачка.
+    */
+
+    control.focus?.({
+      preventScroll: true,
+    });
+
+    toggleTableSessionsWindow(
+      type,
+      node.id
+    );
+  }
+
+  /*
+    Мышь, тачпад и сенсорный экран.
+
+    Окно открывается ещё до обычного click,
+    поэтому предварительно выбирать td
+    отдельным нажатием больше не нужно.
+  */
+
+  control.addEventListener(
+    "pointerdown",
+    (event) => {
+      /*
+        Правую и среднюю кнопки мыши
+        не перехватываем.
+      */
+
+      if (
+        event.pointerType ===
+          "mouse" &&
+        event.button !== 0
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      event
+        .stopImmediatePropagation?.();
+
+      activateControl();
+    }
+  );
+
+  /*
+    Клавиатурная активация кнопки создаёт
+    click с detail === 0.
+
+    Обычный мышиный click здесь повторно
+    не выполняем, поскольку его уже
+    обработал pointerdown.
+  */
+
+  control.addEventListener(
+    "click",
+    (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      event
+        .stopImmediatePropagation?.();
+
+      if (event.detail !== 0) {
+        return;
+      }
+
+      activateControl();
+    }
+  );
+}
+
   function ensureTableSessionsOutsideClick() {
     if (
       document
@@ -1121,20 +1257,11 @@
     timeBtn.title =
       "Показать / скрыть сессии";
 
-    timeBtn.addEventListener(
-      "click",
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        selectNode(node);
-
-        toggleTableSessionsWindow(
-          "counter",
-          node.id
-        );
-      }
-    );
+bindSessionsTimeControl(
+  timeBtn,
+  "counter",
+  node
+);
 
     const resetBtn =
       document.createElement(
@@ -2505,20 +2632,11 @@
     timeBtn.title =
       "Показать / скрыть сессии";
 
-    timeBtn.addEventListener(
-      "click",
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        selectNode(node);
-
-        toggleTableSessionsWindow(
-          "timer",
-          node.id
-        );
-      }
-    );
+bindSessionsTimeControl(
+  timeBtn,
+  "timer",
+  node
+);
 
     const resetBtn =
       document.createElement(
@@ -2541,10 +2659,26 @@
     resetBtn.title =
       "Сбросить остаток таймера";
 
-    resetBtn.disabled =
-      Number(
-        state.durationMs
-      ) <= 0;
+    /*
+  Сброс доступен только после того,
+  как таймер хотя бы один раз был запущен.
+
+  До первого запуска:
+  - время задано;
+  - оставшееся время равно полному времени;
+  - кнопка сброса неактивна.
+*/
+
+const timerHasStarted =
+  state.running ||
+  Number(state.elapsedMs) > 0 ||
+  (
+    Array.isArray(state.sessions) &&
+    state.sessions.length > 0
+  );
+
+resetBtn.disabled =
+  !timerHasStarted;
 
     resetBtn.addEventListener(
       "click",

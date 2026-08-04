@@ -222,6 +222,33 @@ const DEFAULT_LEVEL_HEADERS_MODE =
     return item?.kind === "table";
   }
 
+  /*
+  Заголовки уровней сейчас реализованы только:
+
+  - в Структуре;
+  - в Таблице.
+*/
+
+const LEVEL_HEADERS_AVAILABLE_KINDS =
+  new Set([
+    "schema",
+    "table",
+  ]);
+
+function isLevelHeadersAvailable(
+  itemOrKind
+) {
+  const kind =
+    typeof itemOrKind === "string"
+      ? itemOrKind
+      : itemOrKind?.kind;
+
+  return (
+    LEVEL_HEADERS_AVAILABLE_KINDS
+      .has(kind)
+  );
+}
+
   function isPropertyAvailable(
     item,
     key
@@ -283,6 +310,11 @@ function createDefaultSettings(
 ) {
   const isTable =
     kind === "table";
+
+    const levelHeadersAvailable =
+  isLevelHeadersAvailable(
+    kind
+  );
 
   const properties = {};
 
@@ -355,7 +387,16 @@ function createDefaultSettings(
     */
 
     interface: {
-      levelHeaders: true,
+      /*
+        Новая Структура и новая Таблица
+        создаются с включёнными заголовками.
+
+        В остальных видах настройка
+        недоступна и выключена.
+      */
+
+      levelHeaders:
+        levelHeadersAvailable,
 
       levelHeadersMode:
         DEFAULT_LEVEL_HEADERS_MODE,
@@ -606,6 +647,22 @@ if (
             .interface
             .levelHeaders;
     }
+
+    /*
+  У старых сохранённых вкладок
+  заголовки могли быть включены
+  даже в неподдерживаемых видах.
+*/
+
+if (
+  !isLevelHeadersAvailable(
+    item
+  )
+) {
+  item.settings
+    .interface
+    .levelHeaders = false;
+}
 
     return item.settings;
   }
@@ -1008,26 +1065,78 @@ if (
         }
       );
 
-    /*
-      Заголовки уровней доступны
-      во всех отображениях.
-    */
+ /*
+  Заголовки уровней доступны только
+  в Структуре и Таблице.
+*/
 
-    const levelHeadersToggle =
-      document.getElementById(
-        "toggleLevelHeaders"
-      );
+const levelHeadersAvailable =
+  isLevelHeadersAvailable(
+    item
+  );
 
-    setToggleAvailability(
-      levelHeadersToggle,
-      true,
+const levelHeadersRow =
+  document.getElementById(
+    "levelHeadersTools"
+  );
 
-      !!settings
-        .interface
-        .levelHeaders,
+const levelHeadersToggle =
+  document.getElementById(
+    "toggleLevelHeaders"
+  );
 
-      ""
-    );
+const levelHeadersGear =
+  document.getElementById(
+    "levelHeadersSettingsBtn"
+  );
+
+/*
+  Недоступная строка становится серой.
+*/
+
+levelHeadersRow
+  ?.classList
+  .toggle(
+    "is-unavailable",
+    !levelHeadersAvailable
+  );
+
+/*
+  Шестерёнка тоже должна быть
+  недоступна вместе с тумблером.
+*/
+
+if (levelHeadersGear) {
+  levelHeadersGear.disabled =
+    !levelHeadersAvailable;
+
+  levelHeadersGear.setAttribute(
+    "aria-disabled",
+
+    levelHeadersAvailable
+      ? "false"
+      : "true"
+  );
+
+  levelHeadersGear.title =
+    levelHeadersAvailable
+      ? "Настройки заголовков уровней"
+      : "Заголовки уровней недоступны в этом виде";
+}
+
+setToggleAvailability(
+  levelHeadersToggle,
+  levelHeadersAvailable,
+
+  levelHeadersAvailable &&
+    !!settings
+      .interface
+      .levelHeaders,
+
+  levelHeadersAvailable
+    ? ""
+    : "Заголовки уровней недоступны в этом виде"
+);
   }
 
   function syncToggleStates() {
@@ -1068,12 +1177,15 @@ if (
     );
 
     setToggleState(
-      "toggleLevelHeaders",
+  "toggleLevelHeaders",
 
-      !!settings
-        .interface
-        .levelHeaders
-    );
+  isLevelHeadersAvailable(
+    item
+  ) &&
+    !!settings
+      .interface
+      .levelHeaders
+);
   }
 
   function syncPropertiesCount() {
@@ -1317,16 +1429,10 @@ if (
    Заголовки уровней
 ------------------------- */
 
-const nextLevelHeaders =
-  !!settings
-    .interface
-    .levelHeaders;
-
-const nextLevelHeadersMode =
-  settings
-    .interface
-    .levelHeadersMode ||
-  DEFAULT_LEVEL_HEADERS_MODE;
+const levelHeadersAvailable =
+  isLevelHeadersAvailable(
+    item
+  );
 
 const currentLevelHeaders =
   readCurrentLevelHeaders();
@@ -1334,6 +1440,39 @@ const currentLevelHeaders =
 const currentLevelHeadersMode =
   window.levelHeaders
     ?.getMode?.();
+
+/*
+  В неподдерживаемом виде заголовки
+  обязательно выключаются.
+*/
+
+const nextLevelHeaders =
+  levelHeadersAvailable &&
+  !!settings
+    .interface
+    .levelHeaders;
+
+/*
+  Пока заголовки недоступны,
+  глобальный режим не меняем.
+
+  Это предотвращает лишний рендер
+  при переходе, например,
+  из Структуры в Иерархию.
+*/
+
+const nextLevelHeadersMode =
+  levelHeadersAvailable
+    ? (
+        settings
+          .interface
+          .levelHeadersMode ||
+        DEFAULT_LEVEL_HEADERS_MODE
+      )
+    : (
+        currentLevelHeadersMode ||
+        DEFAULT_LEVEL_HEADERS_MODE
+      );
 
 /*
   Новый общий метод меняет режим

@@ -61,49 +61,14 @@ body.hotkeys-panel-mode-sidebar
   z-index: 3;
 }
 
-
-
 /*
-  В старом правиле модального CSS крестик
-  мог скрываться в sidebar-режиме.
-  Здесь явно возвращаем его.
+  В боковом режиме кнопка должна
+  оставаться видимой.
 */
+
 body.hotkeys-panel-mode-sidebar
   .hotkeys-panel-close-btn {
-  display: flex !important;
-
-  flex: 0 0 auto;
-
-  align-items: center;
-  justify-content: center;
-
-  width: 20px;
-  height: 20px;
-  padding: 0;
-
-  border: 0;
-  border-radius: 50%;
-
-  background: transparent;
-  color: #777777;
-
-  font-family: inherit;
- 
-  line-height: 1;
-
-  cursor: pointer;
-}
-
-body.hotkeys-panel-mode-sidebar
-  .hotkeys-panel-close-btn:hover {
-  background: #eeeeee;
-  color: #222222;
-}
-
-body.hotkeys-panel-mode-sidebar
-  .hotkeys-panel-close-btn:focus-visible {
-  outline: 2px solid rgba(0, 0, 0, 0.2);
-  outline-offset: 2px;
+  display: inline-flex !important;
 }
 
 

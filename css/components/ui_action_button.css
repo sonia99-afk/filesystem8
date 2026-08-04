@@ -1,0 +1,90 @@
+/* css/components/ui_action_button.css */
+
+/* =========================================================
+   Универсальная кнопка действия
+========================================================= */
+
+.ui-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  margin: 0;
+  padding: 5px 10px;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  background: #fff;
+  color: #555;
+
+  font: inherit;
+  line-height: 1;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  box-sizing: border-box;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+/* =========================================================
+   Светлая кнопка
+========================================================= */
+
+.ui-action-button--soft {
+  background: #fff;
+  border-color: transparent;
+  color: #555;
+}
+
+/*
+  При наведении меняется только фон.
+  Цвет текста остаётся прежним.
+*/
+
+.ui-action-button--soft:hover {
+  background: #f0f0f0;
+  border-color: #f0f0f0;
+  color: #555;
+}
+
+.ui-action-button--soft:active {
+  background: #e5e5e5;
+  border-color: #e5e5e5;
+  color: #555;
+}
+
+/* =========================================================
+   Фокус
+========================================================= */
+
+.ui-action-button:focus {
+  outline: none;
+}
+
+.ui-action-button:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.18);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   Неактивное состояние
+========================================================= */
+
+.ui-action-button:disabled,
+.ui-action-button[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+

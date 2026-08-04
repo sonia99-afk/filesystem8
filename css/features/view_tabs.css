@@ -39,8 +39,9 @@
   min-width: 0;
   height: 40px;
 
-  margin-left: 63px;
-  margin-right: 63px;
+  padding-left: 63px;
+  padding-right: 63px;
+  border-bottom: 1px solid #989898;
 
   background: #fff;
 
@@ -48,6 +49,8 @@
 
   position: relative;
   z-index: 20;
+
+  background: #fff;
 
   /*
     Сама строка больше не прокручивается.
@@ -62,10 +65,12 @@
   flex: 1 1 auto;
   min-width: 0;
 
-  overflow-x: auto;
-  overflow-y: hidden;
-
-  scrollbar-width: none;
+  /*
+    Общий контейнер не прокручивается.
+    Кнопка + Вид остаётся внутри него
+    и не исчезает за правой границей.
+  */
+  overflow: hidden;
 }
 
 .view-tabs-scroll::-webkit-scrollbar {
@@ -82,33 +87,65 @@
   gap: 2px;
 
   /*
-    Когда вкладок мало, ширина списка
-    равна их реальной ширине.
+    Когда вкладок мало, список занимает
+    только необходимую ему ширину.
+
+    Когда вкладок становится много,
+    список сжимается и начинает
+    прокручиваться внутри своей области.
   */
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-width: 0;
 
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scrollbar-width: none;
 }
 
+.view-tabs-list::-webkit-scrollbar {
+  display: none;
+}
 /* =========================================================
    Одна вкладка
 ========================================================= */
 
 .view-tab-shell {
+  position: relative;
+
   display: inline-flex;
-  align-items: stretch;
+  align-items: center;
 
   flex: 0 0 auto;
   min-width: 0;
+  height: 100%;
 
-  position: relative;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
 
   background: #fff;
+  color: #555;
+
+  font: inherit;
+  line-height: 1.2;
+  text-align: left;
+
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
 }
+
+
 
 .view-tab-shell:hover {
   background: #eee;
+}
+
+.view-tab-shell:active {
+  background: #dcdcdc;
 }
 
 .view-tab-shell::after {
@@ -132,8 +169,7 @@
 }
 
 
-.view-tab-label,
-.view-tab-add {
+.view-tab-label {
   margin: 0;
   padding: 0;
 
@@ -150,14 +186,13 @@
 .view-tab-emblem {
   width: 28px;
   min-width: 28px;
+  height: 100%;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   color: #555;
-
-
   line-height: 1;
 
   pointer-events: none;
@@ -165,15 +200,25 @@
 }
 
 .view-tab-label {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+
   max-width: 220px;
 
   padding-left: 2px;
   padding-right: 10px;
-  padding-bottom: 1px;
+  padding-top: 0;
+  padding-bottom: 0;
 
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+
+  line-height: 1.2;
+
+  pointer-events: none;
+  user-select: none;
 }
 
 .view-tab-shell.is-active
@@ -185,21 +230,7 @@
   font-weight: 700;
 }
 
-
-.view-tab-label:hover,
-.view-tab-add:hover {
-  background: #eee;
-}
-
-
-.view-tab-label:active,
-.view-tab-add:active {
-  background: #dcdcdc;
-}
-
-
-.view-tab-label:focus-visible,
-.view-tab-add:focus-visible,
+.view-tab-shell:focus-visible,
 .view-type-menu-item:focus-visible,
 .view-tab-context-item:focus-visible {
   outline: 2px solid #111;
@@ -207,50 +238,26 @@
 }
 
 /* =========================================================
-   Кнопка «+ Вид»
+   Расположение кнопки «+ Вид»
+
+   Внешний вид находится в компоненте:
+   css/components/ui_action_button.css
 ========================================================= */
 
 .view-tab-add {
-  flex: 0 0 auto;
-  align-self: stretch;
-
-  padding-left: 14px;
-  padding-right: 10px;
-
-  margin-left: 4px;
-
   /*
-    Пока места хватает — кнопка идёт
-    сразу после последней вкладки.
-
-    При переполнении она фиксируется
-    у правого края строки.
+    Кнопка не сжимается и не прокручивается.
   */
-  position: sticky;
-  right: 0;
-  z-index: 10;
+  flex: 0 0 auto;
+  align-self: center;
 
-  background: #fff;
+  margin-left: 8px;
+  margin-right: 8px;
 
-  
-  color: #666;
-
-  white-space: nowrap;
+  position: relative;
+  z-index: 1;
 }
 
-.view-tab-add::before {
-  content: "";
-
-  position: absolute;
-
-  left: 0;
-  top: 9px;
-  bottom: 9px;
-
-  width: 1px;
-
-  background: #d5d5d5;
-}
 /* =========================================================
    Общие стили двух меню
 ========================================================= */
@@ -259,7 +266,7 @@
 .view-tab-context-menu {
   position: fixed;
 
-  z-index: 5000;
+  z-index: 100;
 
   background: #fff;
 
@@ -288,7 +295,7 @@
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
 
   padding: 6px;
 
@@ -316,7 +323,7 @@
   border: 0;
   border-radius: 6px;
 
-  background: #f9f9f9;
+  background: transparent;
   color: #111;
 
   font: inherit;
@@ -325,8 +332,7 @@
   cursor: pointer;
 }
 
-.view-type-menu-item:hover,
-.view-type-menu-item.is-current {
+.view-type-menu-item:hover {
   background: #eee;
 }
 
@@ -419,9 +425,6 @@
   background: #eee;
 }
 
-.view-tab-context-item.is-danger {
-  color: #a40000;
-}
 
 .view-tab-context-item:disabled {
   color: #aaa;
@@ -471,4 +474,35 @@
 
   pointer-events: none;
   user-select: none;
+}
+
+
+/* =========================================================
+   Переименование вкладки на месте
+========================================================= */
+
+.view-tab-shell.is-renaming {
+  cursor: text;
+  background: #fff;
+}
+
+.view-tab-rename-input {
+  min-width: 90px;
+  max-width: 220px;
+  height: 24px;
+
+  margin: 0 8px 0 2px;
+  padding: 0 4px;
+
+  border: 1px solid #777;
+  border-radius: 0;
+  outline: none;
+
+  background: #fff;
+  color: #111;
+
+  font: inherit;
+  line-height: 22px;
+
+  box-sizing: border-box;
 }

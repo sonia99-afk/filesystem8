@@ -142,37 +142,6 @@ body.hotkeys-panel-mode-modal
   color: #222;
 }
 
-
-/* Крестик */
-
-.hotkeys-panel-close-btn {
-  width: 20px;
-  height: 20px;
-  padding: 0;
-
-  border: 0;
-  border-radius: 50%;
-
-  background: transparent;
-  color: #777;
-
-
-  text-align: center;
-
-  cursor: pointer;
-}
-
-.hotkeys-panel-close-btn:hover {
-  background: #f0f0f0;
-  color: #222;
-}
-
-.hotkeys-panel-close-btn:focus-visible {
-  outline: 2px solid rgba(0, 0, 0, 0.22);
-  outline-offset: 2px;
-}
-
-
 /* =========================================================
    Прокручиваемая середина
    ========================================================= */

@@ -40,6 +40,17 @@
   rel="stylesheet"
   href="css/features/view_settings.css"
 />
+
+<link
+  rel="stylesheet"
+  href="css/components/ui_close_button.css"
+/>
+
+
+<link
+  rel="stylesheet"
+  href="css/components/ui_action_button.css"
+/>
 </head>
 <body>
 
@@ -230,12 +241,12 @@
     ></div>
 
     <button
-      id="addViewTabBtn"
-      class="view-tab-add"
-      type="button"
-    >
-      + Вид
-    </button>
+  id="addViewTabBtn"
+  class="ui-action-button ui-action-button--soft view-tab-add"
+  type="button"
+>
+  + Вид
+</button>
   </div>
 
   <button
@@ -268,14 +279,13 @@
     </div>
 
     <button
-      id="viewSettingsCloseBtn"
-      class="view-settings-close-btn"
-      type="button"
-      aria-label="Закрыть настройки вида"
-      title="Закрыть"
-    >
-      ×
-    </button>
+  id="viewSettingsCloseBtn"
+  class="ui-close-button view-settings-close-btn"
+  type="button"
+  aria-label="Закрыть настройки вида"
+  title="Закрыть"
+  data-ui-close
+> ×</button>
   </div>
 
   <div class="view-settings-body">
@@ -678,15 +688,14 @@
       Список функций и горячие клавиши
     </div>
 
-      <button
-      id="hotkeysPanelCloseBtn"
-      class="hotkeys-panel-close-btn"
-      type="button"
-      aria-label="Закрыть список функций"
-      title="Закрыть"
-    >
-      ×
-    </button>
+    <button
+  id="hotkeysPanelCloseBtn"
+  class="ui-close-button hotkeys-panel-close-btn"
+  type="button"
+  aria-label="Закрыть список функций"
+  title="Закрыть"
+  data-ui-close
+> ×</button>
 
   </div>
 

@@ -106,7 +106,7 @@
     -10px 0 28px
     rgba(0, 0, 0, 0.08);
 
-  z-index: 4600;
+   z-index: 10;
 
   transform: translateX(100%);
   visibility: hidden;
@@ -149,26 +149,7 @@
   color: #111;
 }
 
-.view-settings-close-btn {
-  width: 20px;
-  height: 20px;
 
-  padding: 0;
-  margin: 0;
-
-  border: 0;
-  border-radius: 50%;
-
-  background: transparent;
-  color: #777;
-
-  cursor: pointer;
-}
-
-.view-settings-close-btn:hover {
-  background: #eee;
-  color: #111;
-}
 
 /* =========================================================
    Содержимое панели

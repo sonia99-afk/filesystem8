@@ -821,49 +821,284 @@ return state;
      Переименование
   ========================================================= */
 
-  function renameItem(
-    itemId
-  ) {
-    const state =
-      normalizeState();
+function renameItem(
+  itemId
+) {
+  const state =
+    normalizeState();
 
-    const item =
-      state.items.find(
-        (entry) => {
-          return (
-            entry.id ===
-            itemId
-          );
-        }
+  const item =
+    state.items.find(
+      (entry) => {
+        return (
+          entry.id ===
+          itemId
+        );
+      }
+    );
+
+  if (!item) {
+    return;
+  }
+
+  /*
+    Закрываем контекстное меню,
+    но саму строку вкладок не перерисовываем.
+  */
+
+  closeMenus();
+
+  const shell =
+    document.querySelector(
+      `.view-tab-shell[data-view-tab-id="${item.id}"]`
+    );
+
+  const label =
+    shell?.querySelector(
+      ".view-tab-label"
+    );
+
+  if (
+    !shell ||
+    !label ||
+    shell.classList.contains(
+      "is-renaming"
+    )
+  ) {
+    return;
+  }
+
+  shell.classList.add(
+    "is-renaming"
+  );
+
+  const oldName =
+    String(
+      item.name || ""
+    );
+
+  const input =
+    document.createElement(
+      "input"
+    );
+
+  input.type =
+    "text";
+
+  input.className =
+    "view-tab-rename-input";
+
+  input.value =
+    oldName;
+
+  input.autocomplete =
+    "off";
+
+  input.spellcheck =
+    false;
+
+  input.setAttribute(
+    "aria-label",
+    "Новое название вида"
+  );
+
+  let finished =
+    false;
+
+  /*
+    Ширина поля меняется вместе
+    с длиной введённого названия.
+  */
+
+  function updateInputWidth() {
+    const length =
+      Math.max(
+        input.value.length,
+        4
       );
 
-    if (!item) {
+    const width =
+      Math.max(
+        90,
+        Math.min(
+          220,
+          length * 9 + 18
+        )
+      );
+
+    input.style.width =
+      `${width}px`;
+  }
+
+  function focusRenderedTab() {
+    requestAnimationFrame(
+      () => {
+        const nextShell =
+          document.querySelector(
+            `.view-tab-shell[data-view-tab-id="${item.id}"]`
+          );
+
+        nextShell?.focus({
+          preventScroll: true,
+        });
+      }
+    );
+  }
+
+  function finishRename(
+    save,
+    restoreFocus = false
+  ) {
+    if (finished) {
       return;
     }
 
-    closeMenus();
+    finished = true;
 
-    const next =
-      window.prompt(
-        "Новое название вида",
-        item.name
-      );
+    const nextName =
+      input.value.trim();
 
     if (
-      next !== null &&
-      String(next).trim()
+      save &&
+      nextName &&
+      nextName !== oldName
     ) {
       item.name =
-        String(next)
-          .trim();
+        nextName;
 
       saveState();
     }
 
+    /*
+      Возвращаем обычный вид вкладки.
+    */
+
     renderTabs();
-    restoreEditorFocus();
+
+    if (restoreFocus) {
+      focusRenderedTab();
+    }
   }
 
+  /*
+    Клик по input не должен вызывать
+    открытие вкладки через обработчик shell.
+  */
+
+  input.addEventListener(
+    "pointerdown",
+    (event) => {
+      event.stopPropagation();
+    }
+  );
+
+  input.addEventListener(
+    "click",
+    (event) => {
+      event.stopPropagation();
+    }
+  );
+
+  input.addEventListener(
+    "dblclick",
+    (event) => {
+      event.stopPropagation();
+    }
+  );
+
+  input.addEventListener(
+    "contextmenu",
+    (event) => {
+      event.stopPropagation();
+    }
+  );
+
+  input.addEventListener(
+    "input",
+    updateInputWidth
+  );
+
+  input.addEventListener(
+    "keydown",
+    (event) => {
+      event.stopPropagation();
+
+      /*
+        Enter сохраняет название.
+      */
+
+      if (
+  event.key === "Enter" ||
+  event.code === "NumpadEnter"
+) {
+  event.preventDefault();
+
+  /*
+    Сохраняем название, но не переводим
+    фокус на всю кнопку вкладки.
+  */
+
+  finishRename(
+    true,
+    false
+  );
+
+  return;
+}
+
+      /*
+        Escape отменяет изменения.
+      */
+
+ if (
+  event.key === "Escape"
+) {
+  event.preventDefault();
+
+  finishRename(
+    false,
+    false
+  );
+}
+    }
+  );
+
+  /*
+    При клике вне поля сохраняем
+    введённое название.
+  */
+
+  input.addEventListener(
+    "blur",
+    () => {
+      finishRename(
+        true,
+        false
+      );
+    }
+  );
+
+  /*
+    Меняем только название.
+    Иконка остаётся на своём месте.
+  */
+
+  label.replaceWith(
+    input
+  );
+
+  updateInputWidth();
+
+  requestAnimationFrame(
+    () => {
+      input.focus({
+        preventScroll: true,
+      });
+
+      input.select();
+    }
+  );
+}
   /* =========================================================
      Дублирование
   ========================================================= */
@@ -1397,103 +1632,123 @@ function openContextMenu(
 
     list.innerHTML = "";
 
-    state.items.forEach(
-      (item) => {
-        const def =
-          definition(
-            item.kind
-          );
+state.items.forEach(
+  (item) => {
+    const def =
+      definition(
+        item.kind
+      );
 
-        const shell =
-          document.createElement(
-            "div"
-          );
+    /*
+      Вся вкладка является одной кнопкой.
 
-        shell.className =
-          "view-tab-shell";
+      Иконка и название находятся
+      внутри неё и не являются
+      отдельными интерактивными элементами.
+    */
 
-        shell.dataset.viewTabId =
-          item.id;
+    const shell =
+      document.createElement(
+        "button"
+      );
 
-        if (
-          item.id ===
-          state.activeId
-        ) {
-          shell.classList.add(
-            "is-active"
-          );
-        }
+    shell.type =
+      "button";
 
-/*
-  Эмблема теперь только декоративная.
+    shell.className =
+      "view-tab-shell";
 
-  Она больше не является отдельной кнопкой
-  и не открывает меню смены типа вида.
-*/
-const emblem =
-  document.createElement(
-    "span"
-  );
+    shell.dataset.viewTabId =
+      item.id;
 
-emblem.className =
-  "view-tab-emblem";
+    shell.title =
+      `${item.name} — ${def.description}`;
 
-emblem.setAttribute(
-  "aria-hidden",
-  "true"
-);
+    shell.setAttribute(
+      "role",
+      "tab"
+    );
 
-emblem.appendChild(
-  createViewIcon(
-    def.icon,
-    "view-tab-emblem-img"
-  )
-);
+    shell.setAttribute(
+      "aria-selected",
 
-/*
-  Название остаётся настоящей кнопкой,
-  чтобы вкладка поддерживала фокус
-  и клавиатурное взаимодействие.
-*/
-const label =
-  document.createElement(
-    "button"
-  );
+      item.id ===
+        state.activeId
+        ? "true"
+        : "false"
+    );
 
-label.type =
-  "button";
+    if (
+      item.id ===
+      state.activeId
+    ) {
+      shell.classList.add(
+        "is-active"
+      );
+    }
 
-label.className =
-  "view-tab-label";
+    /* -------------------------
+       Иконка
+    ------------------------- */
 
-label.textContent =
-  item.name;
+    const emblem =
+      document.createElement(
+        "span"
+      );
 
-label.title =
-  `${item.name} — ${def.description}`;
+    emblem.className =
+      "view-tab-emblem";
 
-label.setAttribute(
-  "role",
-  "tab"
-);
+    emblem.setAttribute(
+      "aria-hidden",
+      "true"
+    );
 
-label.setAttribute(
-  "aria-selected",
+    emblem.appendChild(
+      createViewIcon(
+        def.icon,
+        "view-tab-emblem-img"
+      )
+    );
 
-  item.id === state.activeId
-    ? "true"
-    : "false"
-);
+    /* -------------------------
+       Название
+    ------------------------- */
 
-/*
-  Обычный ЛКМ по любой части вкладки,
-  включая эмблему, открывает вид.
-*/
+    const label =
+      document.createElement(
+        "span"
+      );
+
+    label.className =
+      "view-tab-label";
+
+    label.textContent =
+      item.name;
+
+    /* -------------------------
+       Открытие вида
+    ------------------------- */
+
 shell.addEventListener(
   "click",
   (event) => {
     event.preventDefault();
     event.stopPropagation();
+
+    /*
+      Пока внутри вкладки находится
+      поле переименования, сам вид
+      повторно не открываем.
+    */
+
+    if (
+      shell.classList.contains(
+        "is-renaming"
+      )
+    ) {
+      return;
+    }
 
     openItem(
       item.id
@@ -1501,35 +1756,43 @@ shell.addEventListener(
   }
 );
 
-/*
-  ПКМ по любой части вкладки
-  открывает контекстное меню.
-*/
+    /* -------------------------
+       Контекстное меню
+    ------------------------- */
+
 shell.addEventListener(
   "contextmenu",
   (event) => {
     event.preventDefault();
     event.stopPropagation();
 
+    if (
+      shell.classList.contains(
+        "is-renaming"
+      )
+    ) {
+      return;
+    }
+
     openContextMenu(
       item.id,
-      label,
+      shell,
       event.clientX,
       event.clientY
     );
   }
 );
 
-shell.append(
-  emblem,
-  label
-);
-
-        list.appendChild(
-          shell
-        );
-      }
+    shell.append(
+      emblem,
+      label
     );
+
+    list.appendChild(
+      shell
+    );
+  }
+);
   }
 
   /* =========================================================

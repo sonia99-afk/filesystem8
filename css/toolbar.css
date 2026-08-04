@@ -19,6 +19,12 @@
     box-sizing: border-box;
   
     font-size: 12px;
+      position: relative;
+  z-index: 30;
+
+  background: #fff;
+
+
   }
   
   .hint button svg {

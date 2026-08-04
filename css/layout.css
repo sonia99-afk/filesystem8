@@ -15,6 +15,14 @@
     height: 100vh;
   
     transition: grid-template-columns 0.22s ease;
+
+      position: relative;
+
+  /*
+    Все основные части интерфейса
+    сравнивают z-index внутри одного слоя.
+  */
+  isolation: isolate;
   }
   
   .leftbar {
@@ -248,7 +256,7 @@
     box-sizing: border-box;
   
     border-bottom: 1px solid #989898;
-    border-top: 1px solid #989898;
+    
   
     background: #fff;
   
