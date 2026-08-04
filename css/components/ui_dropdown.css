@@ -1,0 +1,488 @@
+/* css/components/ui_dropdown.css */
+
+/* =========================================================
+   Общие настройки выпадающих меню интерфейса
+
+   Здесь можно централизованно менять:
+   - размер шрифта;
+   - фон;
+   - рамку;
+   - скругление;
+   - тень;
+   - отступы;
+   - цвет при наведении;
+   - размеры иконок.
+========================================================= */
+
+:root {
+  --ui-dropdown-font-size: 16px;
+  --ui-dropdown-title-font-size: 12px;
+
+  --ui-dropdown-bg: #fff;
+  --ui-dropdown-color: #111;
+
+  --ui-dropdown-border-color: #e5e5e5;
+  --ui-dropdown-border-radius: 12px;
+
+  --ui-dropdown-padding: 10px;
+
+  --ui-dropdown-shadow:
+    0 12px 30px
+    rgba(0, 0, 0, 0.10);
+
+  --ui-dropdown-item-min-height: 34px;
+  --ui-dropdown-item-padding-y: 8px;
+  --ui-dropdown-item-padding-x: 10px;
+  --ui-dropdown-item-gap: 8px;
+  --ui-dropdown-item-radius: 8px;
+
+  --ui-dropdown-item-hover-bg: #f5f5f5;
+  --ui-dropdown-item-active-bg: #f3f3f3;
+  --ui-dropdown-item-pressed-bg: #ededed;
+
+  --ui-dropdown-title-color: #777;
+  --ui-dropdown-danger-color: #c62828;
+
+  --ui-dropdown-icon-size: 20px;
+}
+
+/* =========================================================
+   Контейнер меню
+========================================================= */
+
+.ui-dropdown-menu,
+.view-tab-context-menu,
+.mark-settings-menu,
+.level-headers-settings-menu {
+  box-sizing: border-box;
+
+  min-width: 190px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+
+  margin: 0;
+  padding: var(--ui-dropdown-padding);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  border:
+    1px solid
+    var(--ui-dropdown-border-color);
+
+  border-radius:
+    var(--ui-dropdown-border-radius);
+
+  background:
+    var(--ui-dropdown-bg);
+
+  color:
+    var(--ui-dropdown-color);
+
+  box-shadow:
+    var(--ui-dropdown-shadow);
+
+  font-family: inherit;
+  font-size:
+    var(--ui-dropdown-font-size);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+/*
+  Меню пользовательского select
+  получает ширину от закрытого поля,
+  поэтому минимальная ширина ему не нужна.
+*/
+
+.ui-select__menu.ui-dropdown-menu {
+  min-width: 0;
+}
+
+/* =========================================================
+   Заголовок группы
+
+   Например:
+   «Отмеченные объекты»
+   «В шапке»
+   «В колонке»
+========================================================= */
+
+.ui-dropdown-title,
+.mark-settings-title,
+.level-headers-settings-title {
+  box-sizing: border-box;
+
+  width: 100%;
+
+  margin: 0;
+  padding: 4px 10px 7px;
+
+  border: 0;
+
+  background: transparent;
+  color:
+    var(--ui-dropdown-title-color);
+
+  font-family: inherit;
+  font-size:
+    var(--ui-dropdown-title-font-size);
+  font-weight: 700;
+  line-height: 1.2;
+
+  text-align: left;
+}
+
+.level-headers-settings-title:first-child {
+  padding-top: 4px;
+}
+
+/* =========================================================
+   Универсальный пункт меню
+========================================================= */
+
+.ui-dropdown-item,
+.view-tab-context-item,
+.mark-settings-item,
+.level-headers-settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap:
+    var(--ui-dropdown-item-gap);
+
+  box-sizing: border-box;
+
+  width: 100%;
+  min-width: 0;
+  min-height:
+    var(--ui-dropdown-item-min-height);
+
+  margin: 0;
+
+  padding:
+    var(--ui-dropdown-item-padding-y)
+    var(--ui-dropdown-item-padding-x);
+
+  border: 0;
+  border-radius:
+    var(--ui-dropdown-item-radius);
+
+  background: transparent;
+  color: inherit;
+
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1.2;
+
+  text-align: left;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* =========================================================
+   Наведение
+========================================================= */
+
+.ui-dropdown-item:hover,
+.view-tab-context-item:hover,
+.mark-settings-item:hover,
+.level-headers-settings-item:hover {
+  background:
+    var(--ui-dropdown-item-hover-bg);
+
+  color: inherit;
+}
+
+/* =========================================================
+   Нажатие
+========================================================= */
+
+.ui-dropdown-item:active,
+.view-tab-context-item:active,
+.mark-settings-item:active,
+.level-headers-settings-item:active {
+  background:
+    var(--ui-dropdown-item-pressed-bg);
+}
+
+/* =========================================================
+   Выбранный пункт
+========================================================= */
+
+.ui-dropdown-item--active,
+.ui-dropdown-item.is-active,
+.ui-dropdown-item[aria-selected="true"],
+.ui-dropdown-item[aria-checked="true"],
+.mark-settings-item.is-active,
+.level-headers-settings-item.is-active {
+  background:
+    var(--ui-dropdown-item-active-bg);
+
+  color:
+    var(--ui-dropdown-color);
+}
+
+.ui-dropdown-item--active:hover,
+.ui-dropdown-item.is-active:hover,
+.ui-dropdown-item[aria-selected="true"]:hover,
+.ui-dropdown-item[aria-checked="true"]:hover,
+.mark-settings-item.is-active:hover,
+.level-headers-settings-item.is-active:hover {
+  background:
+    var(--ui-dropdown-item-pressed-bg);
+}
+
+/* =========================================================
+   Название пункта
+========================================================= */
+
+.ui-dropdown-label {
+  display: block;
+
+  flex: 1 1 auto;
+  min-width: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color: inherit;
+
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   Иконка слева
+========================================================= */
+
+.ui-dropdown-icon,
+.mark-settings-icon,
+.level-headers-settings-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex:
+    0 0
+    var(--ui-dropdown-icon-size);
+
+  width:
+    var(--ui-dropdown-icon-size);
+  min-width:
+    var(--ui-dropdown-icon-size);
+  height:
+    var(--ui-dropdown-icon-size);
+
+  margin: 0;
+  padding: 0;
+
+  color: currentColor;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+
+  text-align: center;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+/* =========================================================
+   Изображение или SVG внутри иконки
+========================================================= */
+
+.ui-dropdown-icon img,
+.ui-dropdown-icon svg,
+.mark-settings-icon img,
+.mark-settings-icon svg,
+.level-headers-settings-icon img,
+.level-headers-settings-icon svg {
+  display: block;
+
+  width: 18px;
+  height: 18px;
+
+  object-fit: contain;
+
+  fill: none;
+  stroke: currentColor;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+/* =========================================================
+   Галочка справа
+========================================================= */
+
+.ui-dropdown-check,
+.ui-select__option-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 18px;
+
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+
+  margin-left: auto;
+
+  color: #111;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+/* =========================================================
+   Радиоиндикатор
+========================================================= */
+
+.ui-dropdown-radio,
+.level-headers-settings-radio {
+  position: relative;
+
+  flex: 0 0 18px;
+
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #777;
+  border-radius: 50%;
+
+  background: #fff;
+
+  pointer-events: none;
+}
+
+.ui-dropdown-item[aria-checked="true"]
+.ui-dropdown-radio::after,
+.level-headers-settings-item.is-active
+.level-headers-settings-radio::after {
+  content: "";
+
+  position: absolute;
+  inset: 3px;
+
+  border-radius: 50%;
+
+  background: #777;
+}
+
+/* =========================================================
+   Опасное действие
+
+   Например:
+   «Удалить вид».
+========================================================= */
+
+
+/* =========================================================
+   Неактивный пункт
+========================================================= */
+
+.ui-dropdown-item:disabled,
+.ui-dropdown-item[aria-disabled="true"],
+.view-tab-context-item:disabled,
+.mark-settings-item:disabled,
+.level-headers-settings-item:disabled {
+  opacity: 0.4;
+
+  cursor: default;
+  pointer-events: none;
+}
+
+/* =========================================================
+   Фокус с клавиатуры
+========================================================= */
+
+.ui-dropdown-item:focus,
+.view-tab-context-item:focus,
+.mark-settings-item:focus,
+.level-headers-settings-item:focus {
+  outline: none;
+}
+
+.ui-dropdown-item:focus-visible,
+.view-tab-context-item:focus-visible,
+.mark-settings-item:focus-visible,
+.level-headers-settings-item:focus-visible {
+  outline: 2px solid #777;
+  outline-offset: -2px;
+}
+
+/* =========================================================
+   Убираем старые промежутки между пунктами
+========================================================= */
+
+.ui-dropdown-item + .ui-dropdown-item,
+.view-tab-context-item + .view-tab-context-item,
+.mark-settings-item + .mark-settings-item,
+.level-headers-settings-item + .level-headers-settings-item {
+  margin-top: 0;
+}
+
+.mark-settings-item:last-child,
+.level-headers-settings-item:last-child {
+  margin-bottom: 0;
+}
+
+/* =========================================================
+   Полоса прокрутки
+========================================================= */
+
+.ui-dropdown-menu,
+.view-tab-context-menu,
+.mark-settings-menu,
+.level-headers-settings-menu {
+  scrollbar-width: thin;
+  scrollbar-color:
+    #c9c9c9
+    transparent;
+}
+
+.ui-dropdown-menu::-webkit-scrollbar,
+.view-tab-context-menu::-webkit-scrollbar,
+.mark-settings-menu::-webkit-scrollbar,
+.level-headers-settings-menu::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ui-dropdown-menu::-webkit-scrollbar-track,
+.view-tab-context-menu::-webkit-scrollbar-track,
+.mark-settings-menu::-webkit-scrollbar-track,
+.level-headers-settings-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ui-dropdown-menu::-webkit-scrollbar-thumb,
+.view-tab-context-menu::-webkit-scrollbar-thumb,
+.mark-settings-menu::-webkit-scrollbar-thumb,
+.level-headers-settings-menu::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+
+  background: #c9c9c9;
+  background-clip: padding-box;
+}

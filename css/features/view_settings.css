@@ -16,63 +16,18 @@
    Кнопка «Настроить вид»
 ========================================================= */
 
+
 .view-settings-open-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-
   flex: 0 0 auto;
-  min-width: 108px;
+  align-self: center;
 
-  padding: 0 10px;
-  margin: 0;
-
-  border: 0;
-  border-left: 0;
-
-  background: #fff;
-  color: #555;
-
-  font: inherit;
-
-  white-space: nowrap;
-  cursor: pointer;
+  margin-left: 8px;
 
   position: relative;
-  z-index: 20;
+  z-index: 2;
 }
 
-.view-settings-open-btn::before {
-  content: "";
 
-  position: absolute;
-
-  left: 0;
-  top: 9px;
-  bottom: 9px;
-
-  width: 1px;
-
-  background: #d5d5d5;
-
-  pointer-events: none;
-}
-
-.view-settings-open-btn:hover,
-.view-settings-open-btn[aria-expanded="true"] {
-  background: #eee;
-  color: #111;
-}
-
-.view-settings-open-btn:active {
-  background: #dcdcdc;
-}
-
-.view-settings-open-btn:focus-visible {
-  outline: 2px solid #111;
-  outline-offset: -2px;
-}
 
 .view-settings-open-icon {
   

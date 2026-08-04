@@ -1483,8 +1483,54 @@ function contextButton(
   button.className =
     "view-tab-context-item";
 
-  button.textContent =
+  /*
+    Иконка создаётся отдельным элементом,
+    поэтому у неё будет фиксированная ширина,
+    а названия всех пунктов выстроятся
+    по одной вертикальной линии.
+  */
+
+  if (options.icon) {
+    const icon =
+      document.createElement(
+        "span"
+      );
+
+    icon.className =
+      "ui-dropdown-icon";
+
+    icon.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    icon.textContent =
+      options.icon;
+
+    button.appendChild(
+      icon
+    );
+  }
+
+  /*
+    Название пункта тоже является
+    отдельным элементом.
+  */
+
+  const text =
+    document.createElement(
+      "span"
+    );
+
+  text.className =
+    "ui-dropdown-label";
+
+  text.textContent =
     label;
+
+  button.appendChild(
+    text
+  );
 
   if (options.danger) {
     button.classList.add(
@@ -1555,41 +1601,55 @@ function openContextMenu(
     "menu"
   );
 
-  const renameButton =
-    contextButton(
-      "Переименовать",
-      () => {
-        renameItem(
-          item.id
-        );
-      }
-    );
+const renameButton =
+  contextButton(
+    "Переименовать",
 
-  const duplicateButton =
-    contextButton(
-      "Дублировать вид",
-      () => {
-        duplicateItem(
-          item.id
-        );
-      }
-    );
+    () => {
+      renameItem(
+        item.id
+      );
+    },
 
-  const deleteButton =
-    contextButton(
-      "Удалить вид",
-      () => {
-        deleteItem(
-          item.id
-        );
-      },
-      {
-        danger: true,
+    {
+      icon: "✎",
+    }
+  );
 
-        disabled:
-          state.items.length <= 1,
-      }
-    );
+const duplicateButton =
+  contextButton(
+    "Дублировать вид",
+
+    () => {
+      duplicateItem(
+        item.id
+      );
+    },
+
+    {
+      icon: "⧉",
+    }
+  );
+
+const deleteButton =
+  contextButton(
+    "Удалить вид",
+
+    () => {
+      deleteItem(
+        item.id
+      );
+    },
+
+    {
+      icon: "⌫",
+
+      danger: true,
+
+      disabled:
+        state.items.length <= 1,
+    }
+  );
 
   menu.appendChild(
     renameButton

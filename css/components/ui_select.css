@@ -1,0 +1,252 @@
+/* css/components/ui_select.css */
+
+/* =========================================================
+   Универсальный интерфейсный список выбора
+========================================================= */
+
+.ui-select {
+  position: relative;
+
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+}
+
+/*
+  Настоящий select сохраняется как источник данных,
+  но системный внешний вид больше не показывается.
+*/
+
+.ui-select__native {
+  display: none !important;
+}
+
+/* =========================================================
+   Закрытая часть списка
+========================================================= */
+
+.ui-select__trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+
+  display: grid;
+  grid-template-columns:
+    22px
+    minmax(0, 1fr)
+    18px;
+
+  align-items: center;
+  gap: 10px;
+
+  margin: 0;
+  padding: 7px 12px;
+
+  border: 1px solid #dedede;
+  border-radius: 12px;
+
+  background: #fff;
+  color: #111;
+
+  font: inherit;
+  line-height: 1.2;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  box-sizing: border-box;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ui-select__trigger:hover {
+  background: #fafafa;
+}
+
+.ui-select.is-open
+.ui-select__trigger {
+  border-color: #d5d5d5;
+}
+
+.ui-select__trigger:focus {
+  outline: none;
+}
+
+.ui-select__trigger:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.18);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   Содержимое закрытого списка
+========================================================= */
+
+.ui-select__trigger-icon,
+.ui-select__option-icon {
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #555;
+
+  line-height: 1;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+.ui-select__trigger-icon img,
+.ui-select__option-icon img {
+  display: block;
+
+  width: 18px;
+  height: 18px;
+
+  object-fit: contain;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+.ui-select__trigger-label {
+  min-width: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color: #111;
+  font-weight: 700;
+
+  pointer-events: none;
+}
+
+.ui-select__chevron {
+  position: relative;
+
+  width: 18px;
+  height: 18px;
+
+  pointer-events: none;
+}
+
+.ui-select__chevron::before {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 45%;
+
+  width: 7px;
+  height: 7px;
+
+  border-right: 1.5px solid #222;
+  border-bottom: 1.5px solid #222;
+
+  transform:
+    translate(-50%, -50%)
+    rotate(45deg);
+
+  transition:
+    transform 120ms ease;
+}
+
+.ui-select.is-open
+.ui-select__chevron::before {
+  top: 57%;
+
+  transform:
+    translate(-50%, -50%)
+    rotate(225deg);
+}
+
+/* =========================================================
+   Раскрытое меню
+========================================================= */
+
+.ui-select__menu {
+  position: fixed;
+
+  z-index: 10000;
+
+  max-height: min(320px, calc(100vh - 16px));
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+}
+
+/*
+  Класс ui-dropdown-menu задаёт:
+  фон, рамку, скругление, тень и padding.
+*/
+
+.ui-select__menu[hidden] {
+  display: none !important;
+}
+
+/* =========================================================
+   Пункт списка
+========================================================= */
+
+.ui-select__option {
+  display: grid;
+  grid-template-columns:
+    22px
+    minmax(0, 1fr)
+    18px;
+
+  align-items: center;
+  gap: 10px;
+
+  min-height: 38px;
+}
+
+.ui-select__option-label {
+  min-width: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ui-select__option-check {
+  width: 18px;
+  height: 18px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: auto;
+
+  color: #111;
+  font-weight: 700;
+
+  pointer-events: none;
+}
+
+.ui-select__option.is-active {
+  background: #f0f0f0;
+}
+
+.ui-select__option.is-active
+.ui-select__option-label {
+  font-weight: 700;
+}
+
+.ui-select__option:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

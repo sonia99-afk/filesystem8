@@ -51,6 +51,16 @@
   rel="stylesheet"
   href="css/components/ui_action_button.css"
 />
+
+<link
+  rel="stylesheet"
+  href="css/components/ui_dropdown.css"
+/>
+
+<link
+  rel="stylesheet"
+  href="css/components/ui_select.css"
+/>
 </head>
 <body>
 
@@ -249,22 +259,28 @@
 </button>
   </div>
 
-  <button
-    id="viewSettingsOpenBtn"
-    class="view-settings-open-btn"
-    type="button"
-    aria-controls="viewSettingsPanel"
-    aria-expanded="false"
+<button
+  id="viewSettingsOpenBtn"
+  class="
+    ui-action-button
+    ui-action-button--outline
+    view-settings-open-btn
+  "
+  type="button"
+  aria-controls="viewSettingsPanel"
+  aria-expanded="false"
+>
+  <span
+    class="view-settings-open-icon"
+    aria-hidden="true"
   >
-    <span
-      class="view-settings-open-icon"
-      aria-hidden="true"
-    >
-      ⚙
-    </span>
+    ⚙
+  </span>
 
-    <span>Настроить вид</span>
-  </button>
+  <span>
+    Настроить вид
+  </span>
+</button>
 </div>
 
 <aside
@@ -289,16 +305,21 @@
   </div>
 
   <div class="view-settings-body">
-    <label class="view-settings-select-field">
-      <span class="view-settings-select-label">
-        Вид
-      </span>
+    <div class="view-settings-select-field">
+  <span
+    id="viewSettingsViewSelectLabel"
+    class="view-settings-select-label"
+  >
+    Вид
+  </span>
 
-      <select
-        id="viewSettingsViewSelect"
-        class="view-settings-view-select"
-      ></select>
-    </label>
+  <select
+    id="viewSettingsViewSelect"
+    class="view-settings-view-select"
+    data-ui-select
+    aria-labelledby="viewSettingsViewSelectLabel"
+  ></select>
+</div>
 
     <!-- =========================
          Свойства
@@ -1743,5 +1764,6 @@
   <script src="spa_router.js"></script>
   <script src="view_tabs.js"></script>
   <script src="view_settings.js"></script>
+  <script src="ui_select.js"></script>
 </body>
 </html>

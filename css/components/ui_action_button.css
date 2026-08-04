@@ -88,3 +88,39 @@
   pointer-events: none;
 }
 
+
+
+/* =========================================================
+   Кнопка с обводкой
+
+   Используется для «Настроить вид».
+========================================================= */
+
+.ui-action-button--outline {
+  background: #fff;
+  border-color: #ddd;
+  color: #111;
+}
+
+/*
+  При наведении меняются только
+  фон и цвет границы.
+
+  Цвет текста остаётся прежним.
+*/
+
+.ui-action-button--outline:hover {
+  background: #f0f0f0;
+  border-color: #f0f0f0;
+  color: #111;
+}
+
+.ui-action-button--outline:active {
+  background: #dedede;
+  border-color: #dedede;
+  color: #111;
+
+  transform:
+    translateY(1px)
+    scale(0.98);
+}
